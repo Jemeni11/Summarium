@@ -2,5 +2,6 @@
 
 In progress
 
-###  Sites that work:
- ScrribleHub
+###  Sites:
+- [x] ScribbleHub
+- [ ] ArchiveOfOurOwn
