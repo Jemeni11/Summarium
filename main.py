@@ -2,6 +2,7 @@
 
 import random
 import re
+import os
 
 import discord
 from discord.ext import commands
@@ -9,13 +10,33 @@ from discord.ext import commands
 from embed_messages.SH_Embed import ScribbleHubEmbed
 from embed_messages.AO3_Embed import ArchiveOfOurOwnEmbed
 
+from dotenv import load_dotenv
+
+load_dotenv() 
+
+BOT_TOKEN = os.getenv('TOKEN')
+
 description = """An example bot to showcase the discord.ext.commands extension
 module.
 There are a number of utility commands being showcased here."""
 
 intents = discord.Intents.default()
 intents.members = True
-intents.message_content = True
+# intents.message_content = True 
+"""
+This worked perfectly about an hour ago and now it throws the following error:
+
+(virtualenv) nonso@HPEnvy:~/Documents/Code/Projects/Summarium$ python3 main.py 
+Traceback (most recent call last):
+  File "main.py", line 25, in <module>
+    intents.message_content = True
+AttributeError: 'Intents' object has no attribute 'message_content'
+(virtualenv) nonso@HPEnvy:~/Documents/Code/Projects/Summarium$
+
+So I commented that line out and ran my code again and it worked 
+somehow even though it shouldn't.
+Putting this comment here incase it causes chaos later on.
+"""
 
 bot = commands.Bot(command_prefix="?", description=description, intents=intents)
 
@@ -90,4 +111,4 @@ async def _bot(ctx):
   """Is the bot cool?"""
   await ctx.send("Yes, the bot is cool.")
 
-bot.run('OTU5NDM5MDYxNjgzMTU5MTMx.Ykb5QQ.ATcpX4nZFWQCt--OFdP4wMr2q64')
+bot.run(BOT_TOKEN)
