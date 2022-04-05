@@ -56,7 +56,7 @@ async def on_message(message):
 
   if re.search(r"(^https://www\.scribblehub\.com/(series|read))/\d+", message.content):
     await message.reply(embed=ScribbleHubEmbed(message.content))
-  elif re.search(r"", message.content):
+  elif re.search(r"^https://archiveofourown\.org/works/\d+", message.content):
     await message.reply(embed=ArchiveOfOurOwnEmbed(message.content))
 
 @bot.command()
