@@ -70,8 +70,8 @@ def archive_of_our_own(url: str):
         # STATS = ' '.join([_.get_text() for _ in soup.find('dl', class_='stats').contents])
         # CONTENT_WARNING = 'N/A' if not soup.find('ul', class_='ul_rate_expand') else '\n'.join(f"- {i.get_text()}" for i in soup.find('ul', class_='ul_rate_expand')
         STATS = ' '.join([f"{_.get_text()} •" if _.get_text()[-1] != ':' else _.get_text() for _ in soup.find('dl', class_='stats').contents ])[:-2]
-        AUTHOR = ', '.join(i.get_text() for i in soup.find_all('a', {'rel': 'author'}))
         AUTHOR_LIST = [f"[{i.get_text()}](https://archiveofourown.org{i['href']})" for i in soup.find('h3', class_='byline heading').contents if i not in ['\n', ', ']]
+        AUTHOR = AUTHOR_LIST[0][AUTHOR_LIST[0].index('[')+1:AUTHOR_LIST[0].index(']')]
         AUTHOR_LINK = f"https://archiveofourown.org{soup.find('a', {'rel': 'author'})['href']}"
         AUTHOR_IMAGE_SOUP = BeautifulSoup(requests.get(AUTHOR_LINK).text, "lxml").find('div', class_="primary header module")
         AUTHOR_IMAGE_LINK = [i for i in AUTHOR_IMAGE_SOUP.contents if i != '\n'][1].a.img['src']
