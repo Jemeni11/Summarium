@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 import requests
 import re
 
-def scribble_hub(url: str) -> typing.Union[dict, str, list]:
+def scribble_hub(url: str) -> typing.Union[dict, str]:
     """
     REQUIRED: 
         - Title
@@ -73,10 +73,3 @@ def scribble_hub(url: str) -> typing.Union[dict, str, list]:
         return STATS
     except Exception as err:
         return f'{err}'
-
-    # Set up the image URL and filename
-    # image_url = soup.find(src=re.compile('https?://cdn.scribblehub'), property='image')['src']
-    # imageURL = soup.find('div', class_='fic_image').children
-    # new_image_url = ''.join(str(_) for _ in imageURL)
-    # Searching = re.findall('https?://', new_image_url)
-    # This will be appended to the end of the filename to make it unique
