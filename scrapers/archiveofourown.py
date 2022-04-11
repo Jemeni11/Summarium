@@ -46,11 +46,12 @@ def archive_of_our_own(url: str):
         webPage = requests.get(url)
         soup = BeautifulSoup(webPage.text, "lxml")
 
+        # For basic AO3 stories
         # ===============TAGS   
         RATING = soup.find('dd', class_='rating tags').get_text(strip=True)
         # RATING = soup.find('dd', class_='rating tags').get_text(strip=True).replace(r'\n', '')
         ARCHIVE_WARNING = ', '.join(_.get_text(strip=True) for _ in soup.find('dd', class_='warning tags').contents[1])[2:-2]
-        # # ARCHIVE_WARNING = ' '.join(soup.find('dd', class_='warning tags').contents[1].text.split())[3:-2]
+        # ARCHIVE_WARNING = ' '.join(soup.find('dd', class_='warning tags').contents[1].text.split())[3:-2]
         # ARCHIVE_WARNING = ' '.join(soup.find('dd', class_='warning tags').contents[1].text.split()).replace(r'\n', '').lstrip()
         FANDOM = ', '.join(i.get_text() for i in soup.find('dd', class_='fandom tags').contents[1])[3:-3]
         # CATEGORY = ''.join(soup.find('dd', class_='category tags').text.split()).replace(r'\n', '')
