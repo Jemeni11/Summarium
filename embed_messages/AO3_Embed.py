@@ -35,7 +35,7 @@ def ArchiveOfOurOwnEmbed(URL: str):
         name= AUTHOR_NAME, 
         url=f"{AO3Reply['AUTHOR_LINK']}", 
         icon_url="https://archiveofourown.org/images/ao3_logos/logo_42.png")
-      if AO3Reply['AUTHOR_IMAGE_LINK'].startswith('https://archiveofourown.org/'):
+      if AO3Reply['AUTHOR_IMAGE_LINK'].startswith('https://'):
         embed.set_thumbnail(url=f"{AO3Reply['AUTHOR_IMAGE_LINK']}")
     else:
       embed.set_author(
@@ -59,6 +59,9 @@ def ArchiveOfOurOwnEmbed(URL: str):
     if AO3Reply['CHARACTERS'] != 'N/A':
       embed.add_field(name="Characters", value=CHARACTERS, inline=False) 
     
+    if len(AO3Reply['SERIES']):
+      embed.add_field(name="Series", value=' • '.join(AO3Reply['SERIES']), inline=False)
+
     embed.add_field(name="Stats", value=STATS, inline=False)
 
     embed.set_footer(text=f"Info retrieved by Summarium on {time.strftime('%a %-d at %X')}")
