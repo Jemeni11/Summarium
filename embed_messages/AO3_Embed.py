@@ -99,13 +99,16 @@ def ArchiveOfOurOwnEmbed(URL: str):
         if AO3Reply['AUTHOR_IMAGE_LINK'].startswith('https://'):
           embed.set_thumbnail(url=f"{AO3Reply['AUTHOR_IMAGE_LINK']}")
       else:
+        AUTHORS_ARR = ' • '.join(AO3Reply['AUTHOR_LIST']) if len(' • '.join(AO3Reply['AUTHOR_LIST'])) <= 1024 else f"{' • '.join(AO3Reply['AUTHOR_LIST'])[:1019]} ..."
+        AUTHORS_ARR_SPLIT = AUTHORS_ARR.split('•')
+        del AUTHORS_ARR_SPLIT[-1]
+        AUTHORS = f"{' • '.join(AUTHORS_ARR_SPLIT)} ..."
         embed.set_author(
           name="Archive Of Our Own", 
           url=URL,
           icon_url="https://archiveofourown.org/images/ao3_logos/logo_42.png"
         )
-        embed.add_field(name="Authors", value=' • '.join(AO3Reply['AUTHOR_LIST']), inline=False)
-
+        embed.add_field(name="Authors", value=AUTHORS, inline=False)
 
       embed.add_field(name="Series Begun", value=f"{AO3Reply['SERIES_BEGUN']}", inline=True)
       embed.add_field(name="Series Updated", value=f"{AO3Reply['SERIES_UPDATED']}", inline=True)

@@ -112,7 +112,7 @@ def archive_of_our_own(url: str):
             SERIES_TITLE = soup.find('h2',class_='heading').get_text(strip=True)
     
             AUTHOR_LIST = [f"[{i.get_text()}](https://archiveofourown.org{i['href']})" for i in SERIES_DATA.dd if i not in ['\n', ', ']]
-            # AUTHOR & AUTHOR_LIST are only used when there's one author.
+            # AUTHOR & AUTHOR_LINK are only used when there's one author.
             AUTHOR = AUTHOR_LIST[0][AUTHOR_LIST[0].index('[')+1:AUTHOR_LIST[0].index(']')]
             AUTHOR_LINK = f"https://archiveofourown.org{soup.find('a', {'rel': 'author'})['href']}"
             AUTHOR_IMAGE_SOUP = BeautifulSoup(requests.get(AUTHOR_LINK).text, "lxml").find('div', class_="primary header module")
