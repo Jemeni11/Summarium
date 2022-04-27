@@ -54,9 +54,9 @@ async def on_message(message):
   if message.author.bot:
     return  # Do not reply to other bots
 
-  if re.search(r"(^https://www\.scribblehub\.com/(series|read))/\d+", message.content):
+  if re.search(r"(^https://www\.scribblehub\.com/(series|read))/\d+", message.content, re.IGNORECASE):
     await message.reply(embed=ScribbleHubEmbed(message.content))
-  elif re.search(r"^https://archiveofourown\.org/(series|works)/\d+", message.content):
+  elif re.search(r"^https://archiveofourown\.org/(\bseries\b|\bworks\b|\bcollections\b)/", message.content, re.IGNORECASE):
     # If ArchiveOfOurOwnEmbed() returns a string, 
     # it means an error occured.
     if isinstance(ArchiveOfOurOwnEmbed(message.content), str):

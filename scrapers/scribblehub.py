@@ -15,7 +15,7 @@ def scribble_hub(url: str) -> typing.Union[dict, str]:
     try:
         urlSplit = url.split('/')
 
-        if re.search(r"(^https://www\.scribblehub\.com/read)/\d+", url):
+        if re.search(r"(^https://www\.scribblehub\.com/read)/\d+", url, re.IGNORECASE):
             storyID = urlSplit[4].split('-')[0]
             storyName = '-'.join(urlSplit[4].split('-')[1:-1]) + '-'
             url = f'https://www.scribblehub.com/series/{storyID}/{storyName}/'

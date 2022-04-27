@@ -121,5 +121,58 @@ def ArchiveOfOurOwnEmbed(URL: str):
 
       return embed
 
+    elif AO3Reply['LINK_TYPE'] == 'COLLECTION':
+      MAIN_LT = AO3Reply['MAINTAINERS_LIST']
+
+      #### Create the initial embed object ####
+      embed=Embed(
+        title=f"{AO3Reply['STORY_TITLE_TEXT']}", 
+        url=str(URL), 
+        description=AO3Reply['SUMMARY'], 
+        color=0xFF0000)
+
+      # Add author, thumbnail, fields, and footer to the embed
+      if AO3Reply['IMAGE'].startswith('https://'):
+        embed.set_thumbnail(url=AO3Reply['IMAGE'])
+      if len(MAIN_LT) == 1:
+        embed.set_author(
+          name= AO3Reply['AUTHOR'], 
+          url=f"{AO3Reply['AUTHOR_LINK']}", 
+          icon_url="https://archiveofourown.org/images/ao3_logos/logo_42.png")
+      else:
+        if len(' • '.join(MAIN_LT)) > 1024:
+          AUTHORS_ARR = f"{' • '.join(MAIN_LT)[:1019]} ..."
+          AUTHORS_ARR_SPLIT = AUTHORS_ARR.split('•')
+          del AUTHORS_ARR_SPLIT[-1]
+          AUTHORS = f"{' • '.join(AUTHORS_ARR_SPLIT)} ..."
+        else:
+          AUTHORS = ' • '.join(MAIN_LT)
+        embed.set_author(
+          name="Archive Of Our Own", 
+          url=URL,
+          icon_url="https://archiveofourown.org/images/ao3_logos/logo_42.png"
+        )
+        embed.add_field(name="Authors", value=AUTHORS, inline=False)
+
+
+      if AO3Reply['INTRO'] != None:
+        INTRO = f"{AO3Reply['INTRO']}" if len(AO3Reply['INTRO']) <= 300 else f"{AO3Reply['INTRO'][:295]} ..."
+        embed.add_field(name="Intro",value=INTRO, inline=False)
+      
+      if AO3Reply['RULES'] != None:
+        RULES = f"{AO3Reply['RULES']}" if len(AO3Reply['RULES']) <= 300 else f"{AO3Reply['RULES'][:295]} ..."
+        embed.add_field(name="Rules",value=RULES, inline=False)
+      
+      embed.add_field(name="Status", value=f"{AO3Reply['STATUS']}", inline=True)
+      
+      embed.add_field(name="Active Since", value=f"{AO3Reply['ACTIVE_SINCE']}", inline=True)
+
+      if AO3Reply['CONTACT'] != None:
+        embed.add_field(name="Contact", value=AO3Reply['CONTACT'], inline=True) 
+
+      embed.set_footer(text=f"Info retrieved by Summarium on {time.strftime('%a %-d at %X')}")
+
+      return embed
+
   except Exception as e:
     return f'Oops! There was an error!\n{e}'
