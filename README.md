@@ -4,5 +4,5 @@ In progress
 
 ###  Sites:
 - [x] ScribbleHub
-- [ ] ArchiveOfOurOwn
+- [x] ArchiveOfOurOwn
 - [ ] Fanfiction.net
