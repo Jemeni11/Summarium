@@ -9,6 +9,7 @@ from discord.ext import commands
 
 from embed_messages.SH_Embed import ScribbleHubEmbed
 from embed_messages.AO3_Embed import ArchiveOfOurOwnEmbed
+from embed_messages.FF_Embed import FanFictionDotNetEmbed
 
 from dotenv import load_dotenv
 
@@ -57,12 +58,9 @@ async def on_message(message):
   if re.search(r"(^https://www\.scribblehub\.com/(series|read))/\d+", message.content, re.IGNORECASE):
     await message.reply(embed=ScribbleHubEmbed(message.content))
   elif re.search(r"^https://archiveofourown\.org/(\bseries\b|\bworks\b|\bcollections\b)/", message.content, re.IGNORECASE):
-    # If ArchiveOfOurOwnEmbed() returns a string, 
-    # it means an error occured.
-    if isinstance(ArchiveOfOurOwnEmbed(message.content), str):
-      await message.reply(ArchiveOfOurOwnEmbed(message.content))
-    else:
-      await message.reply(embed=ArchiveOfOurOwnEmbed(message.content))
+    await message.reply(embed=ArchiveOfOurOwnEmbed(message.content))
+  elif re.search(r"^https://(www|m?)\.?fanfiction\.net/s/\d+", message.content, re.IGNORECASE):
+    await message.reply(embed=FanFictionDotNetEmbed(message.content))
 
 @bot.command()
 async def add(ctx, left: int, right: int):
