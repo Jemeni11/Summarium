@@ -59,7 +59,7 @@ async def on_message(message):
     await message.reply(embed=ScribbleHubEmbed(message.content))
   elif re.search(r"^https://archiveofourown\.org/(\bseries\b|\bworks\b|\bcollections\b)/", message.content, re.IGNORECASE):
     await message.reply(embed=ArchiveOfOurOwnEmbed(message.content))
-  elif re.search(r"^https://(www|m?)\.?fanfiction\.net/s/\d+", message.content, re.IGNORECASE):
+  elif re.search(r"^https://(www|m)\.\bfanfiction\b\.\bnet\b/s/\d+/\d+/\w*", message.content, re.IGNORECASE):
     await message.reply(embed=FanFictionDotNetEmbed(message.content))
 
 @bot.command()
