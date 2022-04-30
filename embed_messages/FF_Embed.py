@@ -1,49 +1,57 @@
+from dateutil import tz
 from datetime import datetime
+now = datetime.now(tz=tz.tzlocal())
 
 from discord import Embed
-from scrapers.fanfictionnet import fanfictionnet
+from scrapers.fanfictionnet import fanfictiondotnet
 
-def ArchiveOfOurOwnEmbed(URL: str):
+def FanFictionDotNetEmbed(URL: str):
+  FFReply = fanfictiondotnet(URL)
   try:
-    time = datetime.utcnow()
+    # fields	Up to 25 field objects
+    # field.name	256 characters
+    # field.value	1024 characters
+    # footer.text	2048 characters
+    # author.name	256 characters
 
-    FFReply = fanfictionnet(URL)
     #### Create the initial embed object ####
-
     embed=Embed(
-      title=f"{FFReply['TITLE']}", 
+      title=f"{FFReply['STORY_TITLE']}", 
       url=str(URL), 
-      description=f"{FFReply['SUMMARY']}", 
-      color=0xFF0000)
+      description=f"{FFReply['SYNOPSIS']}", 
+      color=0x333399
+    )
 
-    AUTHOR_NAME = f"{FFReply['AUTHOR']}" if FFReply <= 256 else f"{FFReply['AUTHOR'][:-5]} ..."
     # Add author, thumbnail, fields, and footer to the embed
     embed.set_author(
-      name= AUTHOR_NAME, 
+      name=f"{FFReply['AUTHOR']}", 
       url=f"{FFReply['AUTHOR_LINK']}", 
-      icon_url="https://archiveofourown.org/images/ao3_logos/logo_42.png")
+      icon_url="https://archiveofourown.org/images/ao3_logos/logo_42.png"
+    )
+    embed.set_thumbnail(url="https://archiveofourown.org/images/ao3_logos/logo_42.png")
 
-    # embed.set_thumbnail(url=f"{FFReply['COVER_IMAGE']}")
+    # if FFReply['AUTHOR_IMAGE_LINK'].startswith('https://'):
+    #   embed.set_thumbnail(url=f"{FFReply['AUTHOR_IMAGE_LINK']}")
 
-    embed.add_field(name="Rating", value=f"{FFReply['RATING']}", inline=False)
+    if str(FFReply['CHARACTERS']).strip() != '':
+      embed.add_field(name="Characters", value=str(FFReply['CHARACTERS']), inline=False)
     
-    embed.add_field(name="Archive Warnings", value=f"{FFReply['ARCHIVE_WARNING']}", inline=False)
-    
-    embed.add_field(name="Fandom", value=f"{FFReply['FANDOM']}", inline=False) 
-    
-    if FFReply['RELATIONSHIPS'] != 'N/A':
-      embed.add_field(name="Relationships", value=f"{FFReply['RELATIONSHIPS']}", inline=False) 
+    # Because why not?
+    chapterstring = f"{FFReply['CHAPTERS']} chapter" if int(FFReply['CHAPTERS']) == 1 else f"{FFReply['CHAPTERS']} chapters"
+    embed.add_field(name="Stats", value=f"**{FFReply['GENRE']}** • {FFReply['RATING']} • {FFReply['WORDS']} words • {chapterstring} • {FFReply['LANGUAGE']}", inline=False)
 
-    if FFReply['CHARACTERS'] != 'N/A':
-      embed.add_field(name="Characters", value=f"{FFReply['CHARACTERS']}", inline=False) 
-
-    embed.add_field(name="Language", value=f"{FFReply['LANGUAGE']}", inline=False)
-    
-    embed.add_field(name="Stats", value=f"{FFReply['STATS']}", inline=False)
-
-    embed.set_footer(text=f"Info retrieved by Summarium on {time.strftime('%a %-d at %X')}")
+    embed.set_footer(text=f"Using the FicHub API for fanfiction.net\nInfo retrieved by Summarium on {now.strftime('%a %-d at %X')}")
 
     return embed
 
   except Exception as e:
-    return f'Oops! There was an error!\n{e}'
+    embed=Embed(
+      title="Summarium Error", 
+      url=str(URL), 
+      description=f"Can not get {URL}", 
+      color=0x333399
+    )
+    embed.set_footer(text=f"{e}")
+
+    return embed
+    # return None

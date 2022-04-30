@@ -1,11 +1,11 @@
+from dateutil import tz
 from datetime import datetime
+now = datetime.now(tz=tz.tzlocal())
 
 from discord import Embed
 from scrapers.archiveofourown import archive_of_our_own
 
 def ArchiveOfOurOwnEmbed(URL: str):
-  time = datetime.utcnow()
-
   AO3Reply = archive_of_our_own(URL)
   try:
     if AO3Reply['LINK_TYPE'] == 'STORY':
@@ -64,7 +64,7 @@ def ArchiveOfOurOwnEmbed(URL: str):
 
       embed.add_field(name="Stats", value=STATS, inline=False)
 
-      embed.set_footer(text=f"Info retrieved by Summarium on {time.strftime('%a %-d at %X')}")
+      embed.set_footer(text=f"Info retrieved by Summarium on {now.strftime('%a %-d at %X')}")
 
       return embed
 
@@ -117,7 +117,7 @@ def ArchiveOfOurOwnEmbed(URL: str):
 
       embed.add_field(name="Stats", value=AO3Reply['STATS'], inline=False)
 
-      embed.set_footer(text=f"Info retrieved by Summarium on {time.strftime('%a %-d at %X')}")
+      embed.set_footer(text=f"Info retrieved by Summarium on {now.strftime('%a %-d at %X')}")
 
       return embed
 
@@ -170,9 +170,17 @@ def ArchiveOfOurOwnEmbed(URL: str):
       if AO3Reply['CONTACT'] != None:
         embed.add_field(name="Contact", value=AO3Reply['CONTACT'], inline=True) 
 
-      embed.set_footer(text=f"Info retrieved by Summarium on {time.strftime('%a %-d at %X')}")
+      embed.set_footer(text=f"Info retrieved by Summarium on {now.strftime('%a %-d at %X')}")
 
       return embed
 
   except Exception as e:
-    return f'Oops! There was an error!\n{e}'
+    embed=Embed(
+      title="Summarium Error", 
+      url=str(URL), 
+      description=f"Can not get {URL}", 
+      color=0xFF0000
+    )
+    embed.set_footer(text=f"{e}")
+
+    return embed

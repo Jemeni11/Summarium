@@ -46,4 +46,12 @@ def ScribbleHubEmbed(URL: str):
     return embed
 
   except Exception as e:
-    return f'Oops! There was an error!\n{e}'
+    embed=Embed(
+      title="Summarium Error", 
+      url=str(URL), 
+      description=f"Can not get {URL}", 
+      color=0x333399
+    )
+    embed.set_footer(text=f"{e}")
+
+    return embed
