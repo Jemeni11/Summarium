@@ -1,57 +1,106 @@
+from dateutil import tz
 from datetime import datetime
+now = datetime.now(tz=tz.tzlocal())
 
 from discord import Embed
-from scrapers.scribblehub import scribble_hub
+from scrapers.scribblehub import ScribbleHub
+
+import re
 
 def ScribbleHubEmbed(URL: str):
+  SHinstance = ScribbleHub(URL)
   try:
-    time = datetime.utcnow()
+    if re.search(r"(^https://www\.scribblehub\.com/(series|read))/\d+", URL, re.IGNORECASE):
+      SHReply = SHinstance.SHWork()
 
-    SHReply = scribble_hub(URL)
-    #### Create the initial embed object ####
+      #### Create the initial embed object ####
 
-    # Description has a limit of 4096 but I'm setting this to 500 characters.
-    Description = SHReply['SYNOPSIS'] if len(SHReply['SYNOPSIS']) < 500 else f"{SHReply['SYNOPSIS'][:495]} ..."
+      # Description has a limit of 4096 but I'm setting this to 500 characters.
+      DESCRIPTION = SHReply['SYNOPSIS'] if len(SHReply['SYNOPSIS']) < 350 else f"{SHReply['SYNOPSIS'][:345]} ..."
 
-    embed=Embed(
-      title=f"{SHReply['STORY_TITLE']}", 
-      url=str(URL), 
-      description=Description, 
-      color=0xE09319)
+      embed=Embed(
+        title=SHReply['STORY_TITLE'], 
+        url=URL, 
+        description=DESCRIPTION, 
+        color=0xE09319)
 
-    # Add author, thumbnail, fields, and footer to the embed
-    embed.set_author(
-      name=f"{SHReply['AUTHOR']}", 
-      url=f"{SHReply['AUTHOR_PROFILE_LINK']}", 
-      icon_url=f"{SHReply['AUTHOR_AVATAR_LINK']}")
+      # Add author, thumbnail, fields, and footer to the embed
+      embed.set_author(
+        name=SHReply['AUTHOR'], 
+        url=SHReply['AUTHOR_PROFILE_LINK'], 
+        icon_url=SHReply['AUTHOR_AVATAR_LINK'])
 
-    embed.set_thumbnail(url=f"{SHReply['COVER_IMAGE']}")
+      embed.set_thumbnail(url=SHReply['COVER_IMAGE'])
 
-    embed.add_field(name="Fandom", value=f"{SHReply['FANDOM']}", inline=False)
-    
-    embed.add_field(name="Content Warning", value=f"{SHReply['CONTENT_WARNING']}", inline=False)
-    
-    embed.add_field(
-      name="Stats",
-      value=
-      f"""
-        {SHReply['VIEWS']} • {SHReply['FAVOURITES']} • {SHReply['CHAPTER_COUNT']} • {SHReply['STORY_UPDATE_FREQUENCY']} • {SHReply['READERS']}
-      """,
-      inline=False)
+      if SHReply['FANDOM'] != 'N/A':
+        embed.add_field(name="Fandom", value=SHReply['FANDOM'], inline=False)
+      
+      if SHReply['CONTENT_WARNING'] != 'N/A':
+        embed.add_field(name="Content Warning", value=SHReply['CONTENT_WARNING'], inline=False)
+      
+      embed.add_field(
+        name="Stats",
+        value=
+        f"""
+          {SHReply['VIEWS']} • {SHReply['FAVOURITES']} • {SHReply['CHAPTER_COUNT']} • {SHReply['READERS']}
+        """,
+        inline=False)
 
-    embed.add_field(name="Genres", value=f"{SHReply['GENRES']}", inline=False)
+      embed.add_field(name="Genres", value=SHReply['GENRES'], inline=False)
 
-    embed.set_footer(text=f"Info retrieved by Summarium on {time.strftime('%a %-d at %X')}")
+      embed.set_footer(text=f"Info retrieved by Summarium on {now.strftime('%a %-d at %X')}")
 
-    return embed
+      return embed
 
-  except Exception as e:
+    elif re.search(r"(^https://www\.scribblehub\.com/profile)/\d+/(\w+)*", URL, re.IGNORECASE): 
+      SHReply = SHinstance.SHProfile()
+
+      #### Create the initial embed object ####
+
+      # Description has a limit of 4096 but I'm setting this to 500 characters.
+      
+      embed=Embed(
+        title="ScribbleHub Profile", 
+        url=URL, 
+        description='', 
+        color=0xE09319)
+
+      # Add author, thumbnail, fields, and footer to the embed
+      embed.set_author(
+        name=SHReply['AUTHOR_NAME'], 
+        url=URL, 
+        icon_url=SHReply['PROFILE_PHOTO'])
+
+      embed.set_thumbnail(url=SHReply['PROFILE_PHOTO'])
+
+      if SHReply['ABOUT'] != '':
+        embed.add_field(name="About", value=SHReply['ABOUT'], inline=False)
+      
+      if SHReply['HOME_PAGE'] != 'N/A':
+        embed.add_field(name="Home Page", value=SHReply['HOME_PAGE'], inline=False)
+      
+      embed.add_field(name="Last Active", value=SHReply['LAST_ACTIVE'], inline=True)
+      embed.add_field(name="Followers", value=SHReply['FOLLOWERS'], inline=True)
+      embed.add_field(name="Following", value=SHReply['FOLLOWING'], inline=True)
+      
+      embed.add_field(
+        name="Stats",
+        value=
+        f"""
+          Joined: {SHReply['JOINED']} • Readers: {SHReply['READERS']} • Series: {SHReply['NUMBER_OF_SERIES']}
+        """,
+        inline=False)
+
+      embed.set_footer(text=f"Info retrieved by Summarium on {now.strftime('%a %-d at %X')}")
+
+      return embed
+
+  except:
     embed=Embed(
       title="Summarium Error", 
-      url=str(URL), 
-      description=f"Can not get {URL}", 
-      color=0x333399
+      url=URL, 
+      description=f"Can not get scribblehub URL {URL}", 
+      color=0x6A0DAD
     )
-    embed.set_footer(text=f"{e}")
 
     return embed
