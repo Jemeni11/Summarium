@@ -1,100 +1,160 @@
+from ast import Try
+import typing
 import requests
 from bs4 import BeautifulSoup
 import re
 
-def chunker(seq, size):
-    return [seq[pos:pos + size] for pos in range(0, len(seq), size)]
+class ArchiveOfOurOwn:
+    def __init__(self, URL:str) -> None:
+        self.URL = URL
 
-def archive_of_our_own(url: str):
-    if re.search(r"^https://archiveofourown\.org/works/\d+",url, re.IGNORECASE):
-        # For basic AO3 stories/works
+    def chunker(self, seq, size) -> list:
+        return [seq[pos:pos + size] for pos in range(0, len(seq), size)]
+        
+    def A03Story(self) -> typing.Union[dict, str]:
         """ 
-        Tags:
-            Tags are comma separated, 100 characters per tag. Fandom, 
-            relationship, character, and additional tags must not add
-            up to more than 75. Archive warning, category, and rating
-            tags do not count toward this limit. Tags are comma separated,
-            100 characters per tag. Fandom, relationship, character, and
-            additional tags must not add up to more than 75. Archive warning,
-            category, and rating tags do not count toward this limit.
-            - Rating*
-            - Archive Warnings*
-            - Fandoms*
-            - Categories
-            - Relationships
-            - Characters 
-            - Additional Tags
-        Preface:
-            - Work Title* [255 characters]
-            - Add co-creators?
-            - Summary [1250 characters]
-            - Notes
-        Association:
-            - Post to Collections/Challenges
-            - Gift this work to
-            - This work is part of a series?
-            - Choose a language*
-            - Select Work Skin
-        Privacy:
-            - Who can comment on this work
-        Work Text:
-            - [500000 characters ]
+            \nTags:
+                Tags are comma separated, 100 characters per tag. Fandom, 
+                relationship, character, and additional tags must not add
+                up to more than 75. Archive warning, category, and rating
+                tags do not count toward this limit.
+                - Rating*
+                - Archive Warnings*
+                - Fandoms*
+                - Categories
+                - Relationships
+                - Characters 
+                - Additional Tags
+            \nPreface:
+                - Work Title* [255 characters]
+                - Add co-creators?
+                - Summary [1250 characters]
+                - Notes
+            \nAssociation:
+                - Post to Collections/Challenges
+                - Gift this work to
+                - This work is part of a series?
+                - Choose a language*
+                - Select Work Skin
+            \nPrivacy:
+                - Who can comment on this work
+            \nWork Text:
+                - [500000 characters ]
         """
+
         try:
-            if url[-16:] != '?view_adult=true':
-                url += '?view_adult=true'
-            webPage = requests.get(url)
+            if self.URL[-16:] != '?view_adult=true':
+                STORY_URL = self.URL + '?view_adult=true'
+            else:
+                STORY_URL = self.URL
+            
+            webPage = requests.get(STORY_URL)
             soup = BeautifulSoup(webPage.text, "lxml")
 
             # ===============TAGS   
             RATING = soup.find('dd', class_='rating tags').get_text(strip=True)
-            ARCHIVE_WARNING = ', '.join(_.get_text(strip=True) for _ in soup.find('dd', class_='warning tags').contents[1])[2:-2]
-            FANDOM = ', '.join(i.get_text() for i in soup.find('dd', class_='fandom tags').contents[1])[3:-3]
-            RELATIONSHIPS = 'N/A' if not soup.find('dd', class_='relationship tags') else ', '.join(_.get_text() for _ in soup.find('dd', class_='relationship tags').contents[1])[3:-3]
-            CHARACTERS = 'N/A' if not soup.find('dd', class_='character tags') else ', '.join(_.get_text() for _ in soup.find('dd', class_='character tags').contents[1])[3:-3]
+
+            ARCHIVE_WARNING_LIST = [_.get_text(strip=True) for _ in soup.find('dd', class_='warning tags').contents[1]]
+            ARCHIVE_WARNING = ', '.join(ARCHIVE_WARNING_LIST)[2:-2]
+
+            FANDOM_LIST = [i.get_text() for i in soup.find('dd', class_='fandom tags').contents[1]]
+            FANDOM = ', '.join(FANDOM_LIST)[3:-3]
+
+            relationshipExists = soup.find('dd', class_='relationship tags') 
+            if relationshipExists: 
+                RELATIONSHIPS = [_.get_text() for _ in relationshipExists.contents[1]]
+            else:
+                RELATIONSHIPS = 'N/A'
             
+            charactersExists = soup.find('dd', class_='character tags')
+            if charactersExists:
+                CHARACTERS = [_.get_text() for _ in charactersExists.contents[1]]
+            else:
+                CHARACTERS = 'N/A'
+
             # ===============PREFACE 
             TITLE = soup.find('h2', class_='title heading').get_text(strip=True)
-            SUMMARY = soup.find('blockquote', class_="userstuff").get_text(strip=True)
+            
+            try:
+                summaryVar = soup.find('blockquote', class_="userstuff")
+                summaryVar = str(summaryVar).replace('<br/>', '\r\n')
+                summaryVar = str(summaryVar).replace('</p><p>', '</p><p>\r\n</p><p>')
+                SUMMARY = BeautifulSoup(summaryVar, 'lxml').get_text()
+            except:
+                SUMMARY = soup.find('blockquote', class_="userstuff").get_text(strip=True)
 
             # ===============ASSOCIATION
-            SeriesList = []
+            SERIES_LIST = []
             for i in soup.find_all('span', class_='series'):
-                SeriesList.extend([f"[{_.get_text()}](https://archiveofourown.org{_['href']})" for _ in i.find_all('a', class_=None)])
-            SERIES = list(set(SeriesList))
+                SERIES_LIST.extend([f"[{_.get_text()}](https://archiveofourown.org{_['href']})" for _ in i.find_all('a', class_=None)])
+            # For some weird reason, I was getting duplicate results 
+            # so turning it into a set first then turning it into
+            # a list handles that 
+            SERIES = list(set(SERIES_LIST))   
+
             LANGUAGE = soup.find('dd', class_='language').get_text(strip=True)
 
             # ===============EXTRAS
-            STATS = ' '.join([f"{_.get_text()} •" if _.get_text()[-1] != ':' else _.get_text() for _ in soup.find('dl', class_='stats').contents ])[:-2]
-            AUTHOR_LIST = [f"[{i.get_text()}](https://archiveofourown.org{i['href']})" for i in soup.find('h3', class_='byline heading').contents if i not in ['\n', ', ']]
+            STATS_SOUP = soup.find('dl', class_='stats')
+            STATS_LIST = []
+            for _ in STATS_SOUP.contents:
+                if _.get_text()[-1] != ':':
+                    STATS_LIST.append(f"{_.get_text()} •") 
+                else:
+                    STATS_LIST.append(f"**{_.get_text()}**") 
+            try:
+                # Removes Hits
+                STATS_LIST.pop()
+                STATS_LIST.pop()
+                # Remove Comments
+                STATS_LIST.remove(STATS_LIST[STATS_LIST.index('**Comments:**') + 1])
+                STATS_LIST.remove('**Comments:**')
+                    # Remove Comments
+                STATS_LIST.remove(STATS_LIST[STATS_LIST.index('**Bookmarks:**') + 1])
+                STATS_LIST.remove('**Bookmarks:**')
+            except:
+                pass
+            STATS = ' '.join(STATS_LIST)[:-2]
+            
+            '''
+            AUTHOR_LIST = Gets all the authors in one list. There will always be at least one author #TODO Test orphan accounts
+            AUTHOR = Gets the first author in AUTHOR_LIST. This is used when there's only one author.
+            AUTHOR_LINK = The link leading to the AUTHOR'S profile page.
+            AUTHOR_IMAGE_SOUP = This uses AUTHOR_LINK to get the AUTHOR's Profile Image.
+            '''
+            AUTHOR_SOUP = soup.find('h3', class_='byline heading')
+            AUTHOR_LIST = [f"[{i.get_text()}](https://archiveofourown.org{i['href']})" for i in AUTHOR_SOUP.contents if i not in ['\n', ', ']]
+            
             # AUTHOR & AUTHOR_LIST are only used when there's one author.
             AUTHOR = AUTHOR_LIST[0][AUTHOR_LIST[0].index('[')+1:AUTHOR_LIST[0].index(']')]
-            AUTHOR_LINK = f"https://archiveofourown.org{soup.find('a', {'rel': 'author'})['href']}"
+            AUTHOR_LINK = AUTHOR_LIST[0][AUTHOR_LIST[0].rindex('(')+1:AUTHOR_LIST[0].rindex(')')]
+            
             AUTHOR_IMAGE_SOUP = BeautifulSoup(requests.get(AUTHOR_LINK).text, "lxml").find('div', class_="primary header module")
             AUTHOR_IMAGE = [i for i in AUTHOR_IMAGE_SOUP.contents if i != '\n'][1].a.img['src']
             AUTHOR_IMAGE_LINK = AUTHOR_IMAGE if AUTHOR_IMAGE.startswith('https://') else f"https://archiveofourown.org{AUTHOR_IMAGE}"
 
-            # return STATS
-            return {'LINK_TYPE': 'STORY',
-                    'RATING': RATING,
-                    'ARCHIVE_WARNING': ARCHIVE_WARNING,
-                    'FANDOM': FANDOM,
-                    'CHARACTERS': CHARACTERS,
-                    'RELATIONSHIPS': RELATIONSHIPS,
-                    'TITLE': TITLE,
-                    'SUMMARY': SUMMARY,
-                    'SERIES': SERIES,
-                    'LANGUAGE': LANGUAGE,
-                    'STATS': STATS,
-                    'AUTHOR': AUTHOR,
-                    'AUTHOR_LINK': AUTHOR_LINK,
-                    'AUTHOR_LIST': AUTHOR_LIST,
-                    'AUTHOR_IMAGE_LINK': AUTHOR_IMAGE_LINK
-                    }
+            return {
+                'RATING': RATING,
+                'ARCHIVE_WARNING': ARCHIVE_WARNING,
+                'ARCHIVE_WARNING_LIST': ARCHIVE_WARNING_LIST, 
+                'FANDOM': FANDOM,
+                'CHARACTERS': CHARACTERS,
+                'RELATIONSHIPS': RELATIONSHIPS,
+                'TITLE': TITLE,
+                'SUMMARY': SUMMARY,
+                'SERIES': SERIES,
+                'LANGUAGE': LANGUAGE,
+                'STATS': STATS,
+                'AUTHOR': AUTHOR,
+                'AUTHOR_LINK': AUTHOR_LINK,
+                'AUTHOR_LIST': AUTHOR_LIST,
+                'AUTHOR_IMAGE_LINK': AUTHOR_IMAGE_LINK
+            }
+                        
         except Exception as err:
-            return f'Error with A03 Work -> {err}'
+            return f'Error with A03 Story -> {err}'
 
-    elif re.search(r"^https://archiveofourown\.org/series/\d+",url, re.IGNORECASE):
+    def A03Series(self) -> typing.Union[dict, str]:
         """
             Series Title* [240 characters left]
             Creator(s): [Add co-creators?]
@@ -105,29 +165,33 @@ def archive_of_our_own(url: str):
             Stats: [Words: Works: Complete: Bookmarks:]
         """
         try:
-            webPage = requests.get(url)
+            webPage = requests.get(self.URL)
             soup = BeautifulSoup(webPage.text, "lxml")
+        
             SERIES_DATA = soup.find('dl', class_='series meta group')
 
             SERIES_TITLE = soup.find('h2',class_='heading').get_text(strip=True)
     
             AUTHOR_LIST = [f"[{i.get_text()}](https://archiveofourown.org{i['href']})" for i in SERIES_DATA.dd if i not in ['\n', ', ']]
+            
             # AUTHOR & AUTHOR_LINK are only used when there's one author.
             AUTHOR = AUTHOR_LIST[0][AUTHOR_LIST[0].index('[')+1:AUTHOR_LIST[0].index(']')]
-            AUTHOR_LINK = AUTHOR_LIST[0][AUTHOR_LIST[0].index('(')+1:AUTHOR_LIST[0].index(')')]
+            AUTHOR_LINK = AUTHOR_LIST[0][AUTHOR_LIST[0].rindex('(')+1:AUTHOR_LIST[0].rindex(')')]
+            
             AUTHOR_IMAGE_SOUP = BeautifulSoup(requests.get(AUTHOR_LINK).text, "lxml").find('div', class_="primary header module")
             AUTHOR_IMAGE = [i for i in AUTHOR_IMAGE_SOUP.contents if i != '\n'][1].a.img['src']
             AUTHOR_IMAGE_LINK = AUTHOR_IMAGE if AUTHOR_IMAGE.startswith('https://') else f"https://archiveofourown.org{AUTHOR_IMAGE}"
+            
             SERIES_BEGUN = ''.join(i.next_sibling.next_sibling.get_text() for i in SERIES_DATA.find_all('dt', string='Series Begun:'))
             SERIES_UPDATED = ''.join(i.next_sibling.next_sibling.get_text() for i in SERIES_DATA.find_all('dt', string='Series Updated:'))
             
             # Stats: [Words: Works: Complete: Bookmarks:]
             Stats_text = ''
             statsArr = [i.get_text(strip=True) for i in SERIES_DATA.find_all('dt', string='Stats:')[0].next_sibling.next_sibling.dl][1:-1]
-            for group in chunker(statsArr, 4):
+            for group in self.chunker(statsArr, 4):
                 Stats_text += f"{' '.join(group)} • "
             STATS = Stats_text[:-2] 
-    
+
             try:
                 descriptionVar = SERIES_DATA.find_all('dt', string='Description:')[0].next_sibling.next_sibling.blockquote
                 descriptionVar = str(descriptionVar).replace('<br/>', '\r\n')
@@ -143,9 +207,19 @@ def archive_of_our_own(url: str):
                 NOTES = BeautifulSoup(notesVar, 'lxml').get_text()
             except:
                 NOTES = None
+            
+            # WORKS
+            try:
+                MAIN_DIV = soup.find('div', {'id': 'main'})
+                WORK_LIST = MAIN_DIV.find('ul', class_='series work index group').contents
+                WORKS = []
+                for i in WORK_LIST:
+                    if i.find('a') != -1:
+                        WORKS.append(f"[{i.find('a').text}](https://archiveofourown.org{i.find('a')['href']})")
+            except:
+                WORKS = "N/A"
 
             return {
-                'LINK_TYPE': 'SERIES',
                 'SERIES_TITLE': SERIES_TITLE,
                 'AUTHOR': AUTHOR,
                 'AUTHOR_LINK': AUTHOR_LINK,
@@ -155,20 +229,23 @@ def archive_of_our_own(url: str):
                 'SERIES_UPDATED': SERIES_UPDATED,
                 'DESCRIPTION': DESCRIPTION,
                 'NOTES': NOTES,
-                'STATS': STATS
+                'STATS': STATS,
+                'WORKS': WORKS
             }
 
         except Exception as err:
             return f'Error with A03 Series -> {err}'
 
-    elif re.search(r"^https://archiveofourown\.org/collections/\w+",url, re.IGNORECASE):
+    def AO3Collection(self) -> typing.Union[dict, str]:
         try:
-            if url.split('/')[-1] != 'profile':
-                url += '/profile'
+            if self.URL.split('/')[-1] != 'profile':
+                COLLECTION_URL = self.URL + '/profile'
+            else:
+                COLLECTION_URL = self.URL
 
-            webPage = requests.get(url)
+            webPage = requests.get(COLLECTION_URL)
             soup = BeautifulSoup(webPage.text, "lxml")
-
+        
             # ++++++++++++++++++ HEADING ++++++++++++++++++
             HEADING = soup.find('div', class_='primary header module')
 
@@ -179,7 +256,14 @@ def archive_of_our_own(url: str):
             IMAGE_LINK = HEADING.find('div', class_='icon').img['src'] 
             IMAGE = IMAGE_LINK if IMAGE_LINK.startswith('https://') else f"https://archiveofourown.org{IMAGE_LINK}"
 
-            SUMMARY = HEADING.find('blockquote', class_='userstuff').get_text(strip=True)
+            try:
+                summaryVar = HEADING.find('blockquote', class_="userstuff")
+                summaryVar = str(summaryVar).replace('<br/>', '\r\n')
+                summaryVar = str(summaryVar).replace('</p><p>', '</p><p>\r\n</p><p>')
+                SUMMARY = BeautifulSoup(summaryVar, 'lxml').get_text()
+            except:
+                SUMMARY = HEADING.find('blockquote', class_='userstuff').get_text(strip=True)
+
             STATUS = HEADING.find('p', class_='type').get_text(strip=True)
 
             # ++++++++++++++++++ WRAPPER ++++++++++++++++++
@@ -191,7 +275,7 @@ def archive_of_our_own(url: str):
             MAINTAINERS_LIST = [f"[{i.get_text(strip=True)}](https://archiveofourown.org{i.a['href']})" for i in MAINTAINERS_LIST_HTML]
             # If there's only one author
             AUTHOR = MAINTAINERS_LIST[0][MAINTAINERS_LIST[0].index('[')+1:MAINTAINERS_LIST[0].index(']')]
-            AUTHOR_LINK = MAINTAINERS_LIST[0][MAINTAINERS_LIST[0].index('(')+1:MAINTAINERS_LIST[0].index(')')]
+            AUTHOR_LINK = MAINTAINERS_LIST[0][MAINTAINERS_LIST[0].rindex('(')+1:MAINTAINERS_LIST[0].rindex(')')]
 
             try:
                 CONTACT_HTML = MAINTAINERS_LIST_HTML[0].parent.parent.next_sibling.next_sibling
@@ -218,7 +302,6 @@ def archive_of_our_own(url: str):
                 RULES = None
 
             return {
-                'LINK_TYPE': 'COLLECTION',
                 'STORY_TITLE_TEXT': STORY_TITLE_TEXT,
                 'STORY_TITLE_LINK': STORY_TITLE_LINK,
                 'IMAGE': IMAGE,
@@ -234,10 +317,17 @@ def archive_of_our_own(url: str):
             }
 
         except Exception as err:
-            return f'Error with A03 Collections -> {err}'
+            return f'Error with A03 Collection -> {err}'
 
-    return "AO3 Error!"
+c = ArchiveOfOurOwn('https://archiveofourown.org/collections/Adopted_PP/works/28814889')
+d = ArchiveOfOurOwn('https://archiveofourown.org/works/25069339/chapters/91671940')
+e = ArchiveOfOurOwn('https://archiveofourown.org/series/1633756')
+f = ArchiveOfOurOwn('https://archiveofourown.org/collections/Harry_Potter_Fanfics_to_Read/profile')
+g = ArchiveOfOurOwn('https://archiveofourown.org/works/29274192')
 
 if __name__ == '__main__':
-    print(archive_of_our_own('https://archiveofourown.org/works/25069339/chapters/91671940'))
-    print(archive_of_our_own('https://archiveofourown.org/series/1633756'))
+    # print(c.A03Story())
+    # print(d.A03Story())
+    print(e.A03Series())
+    # print(f.AO3Collection())
+    # print(g.A03Story())
