@@ -41,7 +41,6 @@ Putting this comment here incase it causes chaos later on.
 
 bot = commands.Bot(command_prefix="?", description=description, intents=intents)
 
-
 @bot.event
 async def on_ready():
   print(f"Logged in as {bot.user} (ID: {bot.user.id})")
@@ -55,55 +54,34 @@ async def on_message(message):
   if message.author.bot:
     return  # Do not reply to other bots
 
-  if re.search(r"(^https://www\.scribblehub\.com/(series|read|profile))/\d+", message.content, re.IGNORECASE):
-    await message.reply(embed=ScribbleHubEmbed(message.content))
-  elif re.search(r"^https://archiveofourown\.org/(\bseries\b|\bworks\b|\bcollections\b)/", message.content, re.IGNORECASE):
-    await message.reply(embed=ArchiveOfOurOwnEmbed(message.content))
-  # elif re.search(r"^https://(www|m)\.\bfanfiction\b\.\bnet\b/s/\d+/\d+/\w*", message.content, re.IGNORECASE):
-  #   await message.reply(embed=FanFictionDotNetEmbed(message.content))
-
-@bot.command()
-async def add(ctx, left: int, right: int):
-  """Adds two numbers together."""
-  await ctx.send(left + right)
-
-
-@bot.command()
-async def roll(ctx, dice: str):
-  """Rolls a dice in NdN format."""
-  try:
-    rolls, limit = map(int, dice.split("d"))
-  except Exception:
-    await ctx.send("Format has to be in NdN!")
-    return
-
-  result = ", ".join(str(random.randint(1, limit)) for r in range(rolls))
-  await ctx.send(result)
-
-
-@bot.command(description="For when you wanna settle the score some other way")
-async def choose(ctx, *choices: str):
-  """Chooses between multiple choices."""
-  await ctx.send(random.choice(choices))
-
-@bot.command()
-async def joined(ctx, member: discord.Member):
-  """Says when a member joined."""
-  await ctx.send(f"{member.name} joined in {member.joined_at}")
-
-
-@bot.group()
-async def cool(ctx):
-  """Says if a user is cool.
-  In reality this just checks if a subcommand is being invoked.
-  """
-  if ctx.invoked_subcommand is None:
-    await ctx.send(f"No, {ctx.subcommand_passed} is not cool")
-
-
-@cool.command(name="bot")
-async def _bot(ctx):
-  """Is the bot cool?"""
-  await ctx.send("Yes, the bot is cool.")
+  # Pulling out all URLs 
+  URLs = re.findall(
+    r"""
+    \b((?:https?://)?(?:(?:www\.)?(?:[\da-z\.-]+)\.(?:[a-z]{2,6})
+    |(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]
+    |2[0-4][0-9]|[01]?[0-9][0-9]?)|(?:(?:[0-9a-fA-F]{1,4}:){7,7}
+    [0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]
+    {1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::
+    [0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]
+    {1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}
+    |(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]
+    {1,4}:(?:(?::[0-9a-fA-F]{1,4}){1,6})|:(?:(?::[0-9a-fA-F]{1,4}){1,7}|:)
+    |fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(?:ffff(?::0{1,4})
+    {0,1}:){0,1}(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}
+    (?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])|(?:[0-9a-fA-F]{1,4}:)
+    {1,4}:(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25
+    [0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])))(?::[0-9]{1,4}|[1-5][0-9]
+    {4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])?
+    (?:/[\w\.-]*)*/?)\b
+    """, 
+    message.content, re.VERBOSE)
+  
+  for i in URLs:
+    if re.search(r"(^https://www\.scribblehub\.com/(series|read|profile))/\d+", i, re.IGNORECASE):
+      await message.reply(embed=ScribbleHubEmbed(i))
+    elif re.search(r"^https://archiveofourown\.org/(\bseries\b|\bworks\b|\bcollections\b)/", i, re.IGNORECASE):
+      await message.reply(embed=ArchiveOfOurOwnEmbed(i))
+    # elif re.search(r"^https://(www|m)\.\bfanfiction\b\.\bnet\b/s/\d+/\d+/\w*", i, re.IGNORECASE):
+    #   await message.reply(embed=FanFictionDotNetEmbed(i))
 
 bot.run(BOT_TOKEN)
