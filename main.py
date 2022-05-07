@@ -9,7 +9,7 @@ from discord.ext import commands
 
 from embed_messages.SH_Embed import ScribbleHubEmbed
 from embed_messages.AO3_Embed import ArchiveOfOurOwnEmbed
-from embed_messages.FF_Embed import FanFictionDotNetEmbed
+# from embed_messages.FF_Embed import FanFictionDotNetEmbed
 
 from dotenv import load_dotenv
 
@@ -55,12 +55,12 @@ async def on_message(message):
   if message.author.bot:
     return  # Do not reply to other bots
 
-  if re.search(r"(^https://www\.scribblehub\.com/(series|read))/\d+", message.content, re.IGNORECASE):
+  if re.search(r"(^https://www\.scribblehub\.com/(series|read|profile))/\d+", message.content, re.IGNORECASE):
     await message.reply(embed=ScribbleHubEmbed(message.content))
   elif re.search(r"^https://archiveofourown\.org/(\bseries\b|\bworks\b|\bcollections\b)/", message.content, re.IGNORECASE):
     await message.reply(embed=ArchiveOfOurOwnEmbed(message.content))
-  elif re.search(r"^https://(www|m)\.\bfanfiction\b\.\bnet\b/s/\d+/\d+/\w*", message.content, re.IGNORECASE):
-    await message.reply(embed=FanFictionDotNetEmbed(message.content))
+  # elif re.search(r"^https://(www|m)\.\bfanfiction\b\.\bnet\b/s/\d+/\d+/\w*", message.content, re.IGNORECASE):
+  #   await message.reply(embed=FanFictionDotNetEmbed(message.content))
 
 @bot.command()
 async def add(ctx, left: int, right: int):
@@ -86,14 +86,6 @@ async def choose(ctx, *choices: str):
   """Chooses between multiple choices."""
   await ctx.send(random.choice(choices))
 
-
-@bot.command()
-async def repeat(ctx, times: int, content="repeating..."):
-  """Repeats a message multiple times."""
-  for _ in range(times):
-    await ctx.send(content)
-
-  
 @bot.command()
 async def joined(ctx, member: discord.Member):
   """Says when a member joined."""
