@@ -1,9 +1,9 @@
-from dateutil import tz
-from datetime import datetime
-now = datetime.now(tz=tz.tzlocal())
+from datetime import datetime, timezone
+now = datetime.now(tz=timezone.utc)
 
 from discord import Embed
-from scrapers.fanfictionnet import fanfictiondotnet
+# from scrapers.fanfictionnet import fanfictiondotnet
+from test2 import fanfictiondotnet
 
 def FanFictionDotNetEmbed(URL: str):
   FFReply = fanfictiondotnet(URL)
@@ -28,10 +28,9 @@ def FanFictionDotNetEmbed(URL: str):
       url=f"{FFReply['AUTHOR_LINK']}", 
       icon_url="https://archiveofourown.org/images/ao3_logos/logo_42.png"
     )
-    embed.set_thumbnail(url="https://archiveofourown.org/images/ao3_logos/logo_42.png")
-
-    # if FFReply['AUTHOR_IMAGE_LINK'].startswith('https://'):
-    #   embed.set_thumbnail(url=f"{FFReply['AUTHOR_IMAGE_LINK']}")
+    
+    if FFReply['COVER_IMAGE'].startswith('https://'):
+      embed.set_thumbnail(url=FFReply['COVER_IMAGE'])
 
     if str(FFReply['CHARACTERS']).strip() != '':
       embed.add_field(name="Characters", value=str(FFReply['CHARACTERS']), inline=False)
@@ -40,7 +39,7 @@ def FanFictionDotNetEmbed(URL: str):
     chapterstring = f"{FFReply['CHAPTERS']} chapter" if int(FFReply['CHAPTERS']) == 1 else f"{FFReply['CHAPTERS']} chapters"
     embed.add_field(name="Stats", value=f"**{FFReply['GENRE']}** • {FFReply['RATING']} • {FFReply['WORDS']} words • {chapterstring} • {FFReply['LANGUAGE']}", inline=False)
 
-    embed.set_footer(text=f"Using the FicHub API for fanfiction.net\nInfo retrieved by Summarium on {now.strftime('%a %-d at %X')}")
+    embed.set_footer(text=f"Info retrieved by Summarium on {now.strftime('%a %-d at %X')}")
 
     return embed
 
@@ -54,4 +53,3 @@ def FanFictionDotNetEmbed(URL: str):
     embed.set_footer(text=f"{e}")
 
     return embed
-    # return None
