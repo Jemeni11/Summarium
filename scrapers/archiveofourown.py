@@ -51,6 +51,16 @@ class ArchiveOfOurOwn:
             webPage = requests.get(STORY_URL)
             soup = BeautifulSoup(webPage.text, "lxml")
 
+            if soup.title.getText(strip=True).startswith("404") and "Error" in soup.title.getText(strip=True):
+                from playwright.sync_api import sync_playwright
+
+                with sync_playwright() as p:
+                    browser = p.chromium.launch()
+                    page = browser.new_page()
+                    page.goto(STORY_URL)
+                    soup = page.content
+                    browser.close()
+
             # ===============TAGS   
             RATING = soup.find('dd', class_='rating tags').get_text(strip=True)
 
@@ -109,7 +119,7 @@ class ArchiveOfOurOwn:
                 # Remove Comments
                 STATS_LIST.remove(STATS_LIST[STATS_LIST.index('**Comments:**') + 1])
                 STATS_LIST.remove('**Comments:**')
-                    # Remove Comments
+                # Remove Comments
                 STATS_LIST.remove(STATS_LIST[STATS_LIST.index('**Bookmarks:**') + 1])
                 STATS_LIST.remove('**Bookmarks:**')
             except:
@@ -123,14 +133,20 @@ class ArchiveOfOurOwn:
             AUTHOR_IMAGE_SOUP = This uses AUTHOR_LINK to get the AUTHOR's Profile Image.
             '''
             AUTHOR_SOUP = soup.find('h3', class_='byline heading')
-            AUTHOR_LIST = [f"[{i.get_text()}](https://archiveofourown.org{i['href']})" for i in AUTHOR_SOUP.contents if i not in ['\n', ', ']]
+            if "<a href" in str(AUTHOR_SOUP):
+                AUTHOR_LIST = [f"[{i.get_text()}](https://archiveofourown.org{i['href']})" for i in AUTHOR_SOUP.contents if i not in ['\n', ', ']]
             
-            # AUTHOR & AUTHOR_LIST are only used when there's one author.
-            AUTHOR = AUTHOR_LIST[0][AUTHOR_LIST[0].index('[')+1:AUTHOR_LIST[0].index(']')]
-            AUTHOR_LINK = AUTHOR_LIST[0][AUTHOR_LIST[0].rindex('(')+1:AUTHOR_LIST[0].rindex(')')]
+                # AUTHOR & AUTHOR_LIST are only used when there's one author.
+                AUTHOR = AUTHOR_LIST[0][AUTHOR_LIST[0].index('[')+1:AUTHOR_LIST[0].index(']')]
+                AUTHOR_LINK = AUTHOR_LIST[0][AUTHOR_LIST[0].rindex('(')+1:AUTHOR_LIST[0].rindex(')')]
             
+            elif AUTHOR_SOUP.get_text(strip=True) == "Anonymous":
+                AUTHOR = "Anonymous"
+                AUTHOR_LINK = "https://archiveofourown.org/collections/anonymous/profile"
+                AUTHOR_LIST = ["[Anonymous](https://archiveofourown.org/collections/anonymous/profile)"]
+
             AUTHOR_IMAGE_SOUP = BeautifulSoup(requests.get(AUTHOR_LINK).text, "lxml").find('div', class_="primary header module")
-            AUTHOR_IMAGE = [i for i in AUTHOR_IMAGE_SOUP.contents if i != '\n'][1].a.img['src']
+            AUTHOR_IMAGE = AUTHOR_IMAGE_SOUP.find(class_="icon").img['src']
             AUTHOR_IMAGE_LINK = AUTHOR_IMAGE if AUTHOR_IMAGE.startswith('https://') else f"https://archiveofourown.org{AUTHOR_IMAGE}"
 
             return {
@@ -198,7 +214,7 @@ class ArchiveOfOurOwn:
                 descriptionVar = str(descriptionVar).replace('</p><p>', '</p><p>\r\n</p><p>')
                 DESCRIPTION = BeautifulSoup(descriptionVar, 'lxml').get_text()
             except:
-                DESCRIPTION = None
+                DESCRIPTION = ' '
 
             try:
                 notesVar = SERIES_DATA.find_all('dt', string='Notes:')[0].next_sibling.next_sibling.blockquote
@@ -206,7 +222,7 @@ class ArchiveOfOurOwn:
                 notesVar = str(notesVar).replace('</p><p>', '</p><p>\r\n</p><p>')
                 NOTES = BeautifulSoup(notesVar, 'lxml').get_text()
             except:
-                NOTES = None
+                NOTES = ' '
             
             # WORKS
             try:
@@ -321,8 +337,8 @@ class ArchiveOfOurOwn:
 
 c = ArchiveOfOurOwn('https://archiveofourown.org/collections/Adopted_PP/works/28814889')
 d = ArchiveOfOurOwn('https://archiveofourown.org/works/25069339/chapters/91671940')
-e = ArchiveOfOurOwn('https://archiveofourown.org/series/1633756')
-f = ArchiveOfOurOwn('https://archiveofourown.org/collections/Harry_Potter_Fanfics_to_Read/profile')
+e = ArchiveOfOurOwn('https://archiveofourown.org/series/1892983')
+f = ArchiveOfOurOwn('https://archiveofourown.org/collections/anonymous/works/39304047')
 g = ArchiveOfOurOwn('https://archiveofourown.org/works/29274192')
 
 if __name__ == '__main__':

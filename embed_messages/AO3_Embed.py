@@ -17,8 +17,14 @@ def ArchiveOfOurOwnEmbed(url: str):
       AUTHOR_NAME = f"{AO3Reply['AUTHOR']}" if len(AO3Reply['AUTHOR']) <= 256 else f"{AO3Reply['AUTHOR'][:251]} ..."
       ARCHIVE_WARNING = f"{AO3Reply['ARCHIVE_WARNING']}" if len(AO3Reply['ARCHIVE_WARNING']) <= 250 else f"{AO3Reply['ARCHIVE_WARNING'][:245]} ..."
       FANDOM = f"{AO3Reply['FANDOM']}" if len(AO3Reply['FANDOM']) <= 250 else f"{AO3Reply['FANDOM'][:245]} ..."
-      RELATIONSHIPS = ', '.join(AO3Reply['RELATIONSHIPS'][1:6]).strip()
-      CHARACTERS = ', '.join(AO3Reply['CHARACTERS'][1:6]).strip()
+      if len(AO3Reply['RELATIONSHIPS']) == 3:
+        RELATIONSHIPS = AO3Reply['RELATIONSHIPS'][1] + " "
+      else:
+        RELATIONSHIPS = ', '.join(AO3Reply['RELATIONSHIPS'][1:6]).strip() + " "
+      if len(AO3Reply['CHARACTERS']) == 3:
+        CHARACTERS = AO3Reply['CHARACTERS'][1] + " "
+      else:
+        CHARACTERS = ', '.join(AO3Reply['CHARACTERS'][1:6]).strip() + " "
       STATS = f"{AO3Reply['STATS']}" if len(AO3Reply['STATS']) <= 250 else f"{AO3Reply['STATS'][:245]} ..."
       DESCRIPTION = AO3Reply['SUMMARY'] if len(AO3Reply['SUMMARY']) < 270 else f"{AO3Reply['SUMMARY'][:265]} ..."
       # fields	Up to 25 field objects
@@ -135,8 +141,18 @@ def ArchiveOfOurOwnEmbed(url: str):
       embed.add_field(name="Notes", value=NOTES, inline=False) 
 
       if AO3Reply['WORKS'] != "N/A":
-        WORKS = " • ".join(AO3Reply['WORKS'])
-        embed.add_field(name="Works", value=WORKS, inline=False)
+        if len(" • ".join(AO3Reply['WORKS'])) <= 1024:
+          WORKS = ' • '.join(AO3Reply['WORKS'])
+          print(WORKS)
+        else:
+          WORKS_ARR = f"{' • '.join(AO3Reply['WORKS'])[:1015]} ..."
+          if WORKS_ARR[1014] != ')':
+            WORKS_ARR_SPLIT = WORKS_ARR.split(' • ')
+            del WORKS_ARR_SPLIT[-1]
+            WORKS = f"{' • '.join(WORKS_ARR_SPLIT)} ..."
+            embed.add_field(name="Works", value=WORKS, inline=False)
+          else:
+            embed.add_field(name="Works", value=WORKS_ARR, inline=False)
 
       embed.add_field(name="Stats", value=AO3Reply['STATS'], inline=False)
 

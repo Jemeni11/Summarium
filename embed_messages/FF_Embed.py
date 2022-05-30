@@ -2,8 +2,7 @@ from datetime import datetime, timezone
 now = datetime.now(tz=timezone.utc)
 
 from discord import Embed
-# from scrapers.fanfictionnet import fanfictiondotnet
-from test2 import fanfictiondotnet
+from scrapers.fanfictionnet import fanfictiondotnet
 
 def FanFictionDotNetEmbed(URL: str):
   FFReply = fanfictiondotnet(URL)
@@ -29,7 +28,7 @@ def FanFictionDotNetEmbed(URL: str):
       icon_url="https://archiveofourown.org/images/ao3_logos/logo_42.png"
     )
     
-    if FFReply['COVER_IMAGE'].startswith('https://'):
+    if FFReply['COVER_IMAGE'] != None and FFReply['COVER_IMAGE'].startswith('https://'):
       embed.set_thumbnail(url=FFReply['COVER_IMAGE'])
 
     if str(FFReply['CHARACTERS']).strip() != '':
@@ -48,8 +47,7 @@ def FanFictionDotNetEmbed(URL: str):
       title="Summarium Error", 
       url=str(URL), 
       description=f"Can not get {URL}", 
-      color=0x333399
+      color=0x993633
     )
-    embed.set_footer(text=f"{e}")
 
     return embed
