@@ -1,6 +1,5 @@
 # This example requires the 'members' and 'message_content' privileged intents
 
-import random
 import re
 import os
 
@@ -9,7 +8,8 @@ from discord.ext import commands
 
 from embed_messages.SH_Embed import ScribbleHubEmbed
 from embed_messages.AO3_Embed import ArchiveOfOurOwnEmbed
-# from embed_messages.FF_Embed import FanFictionDotNetEmbed
+from embed_messages.FF_Embed import FanFictionDotNetEmbed
+from embed_messages.FL_Embed import FictionDotLiveEmbed
 
 from dotenv import load_dotenv
 
@@ -81,7 +81,9 @@ async def on_message(message):
       await message.reply(embed=ScribbleHubEmbed(i))
     elif re.search(r"^https://archiveofourown\.org/(\bseries\b|\bworks\b|\bcollections\b)/", i, re.IGNORECASE):
       await message.reply(embed=ArchiveOfOurOwnEmbed(i))
-    # elif re.search(r"^https://(www|m)\.\bfanfiction\b\.\bnet\b/s/\d+/\d+/\w*", i, re.IGNORECASE):
-    #   await message.reply(embed=FanFictionDotNetEmbed(i))
+    elif re.search(r"^https://(www|m)\.(\bfanfiction\b\.\bnet\b)/s/\d+/\d+/\w*", i, re.IGNORECASE):
+      await message.reply(embed=FanFictionDotNetEmbed(i))
+    elif re.search(r'^https?://fiction\.live/(?:stories|Sci-fi)/[^\/]+/([0-9a-zA-Z\-]+)/?.*', i, re.IGNORECASE):
+      await message.reply(embed=FictionDotLiveEmbed(i))
 
 bot.run(BOT_TOKEN)
