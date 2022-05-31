@@ -82,7 +82,7 @@ async def on_message(message):
     elif re.search(r"^https://archiveofourown\.org/(\bseries\b|\bworks\b|\bcollections\b)/", i, re.IGNORECASE):
       await message.reply(embed=ArchiveOfOurOwnEmbed(i))
     elif re.search(r"^https://(www|m)\.(\bfanfiction\b\.\bnet\b)/s/\d+/\d+/\w*", i, re.IGNORECASE):
-      await message.reply(embed=FanFictionDotNetEmbed(i))
+      await message.reply(file=FanFictionDotNetEmbed(i)[0], embed=FanFictionDotNetEmbed(i)[1])
     elif re.search(r'^https?://fiction\.live/(?:stories|Sci-fi)/[^\/]+/([0-9a-zA-Z\-]+)/?.*', i, re.IGNORECASE):
       await message.reply(embed=FictionDotLiveEmbed(i))
 

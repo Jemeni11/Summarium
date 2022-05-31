@@ -1,11 +1,14 @@
 from datetime import datetime, timezone
+import imp
 now = datetime.now(tz=timezone.utc)
 
 from discord import Embed
+from discord import File
 from scrapers.fanfictionnet import fanfictiondotnet
 
 def FanFictionDotNetEmbed(URL: str):
   FFReply = fanfictiondotnet(URL)
+  file = File('./embed_messages/Logos/FanFictionDotNet.png', filename='FanFictionDotNet.png') 
   try:
     # fields	Up to 25 field objects
     # field.name	256 characters
@@ -25,22 +28,29 @@ def FanFictionDotNetEmbed(URL: str):
     embed.set_author(
       name=f"{FFReply['AUTHOR']}", 
       url=f"{FFReply['AUTHOR_LINK']}", 
-      icon_url="https://archiveofourown.org/images/ao3_logos/logo_42.png"
+      icon_url="attachment://FanFictionDotNet.png"
     )
     
     if FFReply['COVER_IMAGE'] != None and FFReply['COVER_IMAGE'].startswith('https://'):
       embed.set_thumbnail(url=FFReply['COVER_IMAGE'])
+    else:
+      embed.set_thumbnail(url='attachment://FanFictionDotNet.png')
 
-    if str(FFReply['CHARACTERS']).strip() != '':
-      embed.add_field(name="Characters", value=str(FFReply['CHARACTERS']), inline=False)
+    if FFReply['CHARACTERS'] != None:
+      embed.add_field(name="Characters", value=str(FFReply['CHARACTERS']), inline=True)
+      
+    if FFReply['GENRE'] != None:
+      embed.add_field(name="Genre", value=FFReply['GENRE'], inline=True)
     
+    embed.add_field(name="Status", value=f"*{FFReply['STATUS'].capitalize()}* • Published on {FFReply['PUBLISHED'][:10]} • Updated on {FFReply['UPDATED'][:10]}", inline=False)
+
     # Because why not?
     chapterstring = f"{FFReply['CHAPTERS']} chapter" if int(FFReply['CHAPTERS']) == 1 else f"{FFReply['CHAPTERS']} chapters"
-    embed.add_field(name="Stats", value=f"**{FFReply['GENRE']}** • {FFReply['RATING']} • {FFReply['WORDS']} words • {chapterstring} • {FFReply['LANGUAGE']}", inline=False)
+    embed.add_field(name="Stats", value=f"{FFReply['RATING']} • {FFReply['WORDS']} words • {chapterstring} • {FFReply['LANGUAGE']}", inline=False)
 
     embed.set_footer(text=f"Info retrieved by Summarium on {now.strftime('%a %-d at %X')}")
 
-    return embed
+    return (file, embed)
 
   except Exception as e:
     embed=Embed(
@@ -49,5 +59,5 @@ def FanFictionDotNetEmbed(URL: str):
       description=f"Can not get {URL}", 
       color=0x993633
     )
-
-    return embed
+    embed.set_thumbnail(url='attachment://FanFictionDotNet.png')
+    return (file, embed)

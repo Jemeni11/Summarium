@@ -10,11 +10,26 @@ def fanfiction_dot_net(url: str):
     #     """ 
     #     """
         try:
-            webPage = requests.get(url)
-            soup = BeautifulSoup(webPage.text, "lxml")
+            headers = {
+                'Content-Type': 'application/json',
+            }
+
+            json_data = {
+                'cmd': 'request.get',
+                'url': url,
+                'maxTimeout': 60000,
+            }
+            use_me = requests.Session()
+            response = use_me.post('http://0.0.0.0:7000/v1', headers=headers, json=json_data)
+
+            soup = BeautifulSoup(response.json()["solution"]["response"], 'lxml')
+            f = open('jsonData.html', 'w')
+            f.write(response.json()["solution"]["response"])
+            f.close()
 
             #!INCOMPLETE: Does not support multi-fandoms
-            FANDOM = soup.find('div', {'id': 'pre_story_links'}).span.contents[2].get_text()
+            # FANDOM = soup.find('div', {'id': 'pre_story_links'}).span.contents[2].get_text()
+            FANDOM = "soup.find('div', {'id': 'pre_story_links'}).span.contents[2].get_text()"
 
             #*********** PROFILE TOP ***********
             PROFILE_TOP = soup.find('div', {'id': 'profile_top'})
@@ -64,4 +79,4 @@ def fanfiction_dot_net(url: str):
             return f'Error with Fanfiction -> {err}'
 
 if __name__ == '__main__':
-    print(fanfiction_dot_net('https://www.fanfiction.net/s/13942236/1/'))
+    print(fanfiction_dot_net('https://www.fanfiction.net/s/14035761/9/'))
