@@ -334,16 +334,3 @@ class ArchiveOfOurOwn:
 
         except Exception as err:
             return f'Error with A03 Collection -> {err}'
-
-c = ArchiveOfOurOwn('https://archiveofourown.org/collections/Adopted_PP/works/28814889')
-d = ArchiveOfOurOwn('https://archiveofourown.org/works/25069339/chapters/91671940')
-e = ArchiveOfOurOwn('https://archiveofourown.org/series/1892983')
-f = ArchiveOfOurOwn('https://archiveofourown.org/collections/anonymous/works/39304047')
-g = ArchiveOfOurOwn('https://archiveofourown.org/works/29274192')
-
-if __name__ == '__main__':
-    # print(c.A03Story())
-    # print(d.A03Story())
-    print(e.A03Series())
-    # print(f.AO3Collection())
-    # print(g.A03Story())
