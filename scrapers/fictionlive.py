@@ -11,16 +11,18 @@ def fictiondotlive(url: str):
   AUTHOR = response['u'][0]['n']
   
   if not 'a' in response['u'][0].keys():
-    AUTHOR_IMAGE = None
+    AUTHOR_IMAGE = 'https://ddx5i92cqts4o.cloudfront.net/images/1e1nvq5tm_fllogo.png'
   else:
     AUTHOR_IMAGE = response['u'][0]['a']
   
   AUTHOR_LINK = f"https://fiction.live/user/{AUTHOR}"
   STORY_STATUS = None if not 'storyStatus' in response.keys() else response['storyStatus']
   CONTENT_RATING = None if not 'contentRating' in response.keys() else response['contentRating']
+  if CONTENT_RATING == 'nsfw': 
+    CONTENT_RATING = 'NSFW'
 
   if not 'i' in response.keys():
-    COVER_IMAGE = None
+    COVER_IMAGE = 'https://ddx5i92cqts4o.cloudfront.net/images/1e1nvq5tm_fllogo.png'
   else:
     COVER_IMAGE = response['i'][0]
   
