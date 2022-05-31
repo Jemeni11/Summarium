@@ -1,9 +1,8 @@
-from datetime import datetime, timezone
-import imp
-now = datetime.now(tz=timezone.utc)
+from dateutil import tz
+from datetime import datetime
+now = datetime.now(tz=tz.tzlocal())
 
-from discord import Embed
-from discord import File
+from discord import Embed, File
 from scrapers.fanfictionnet import fanfictiondotnet
 
 def FanFictionDotNetEmbed(URL: str):
