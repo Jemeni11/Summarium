@@ -88,5 +88,5 @@ async def on_message(message):
 		elif re.search(r'^https?://fiction\.live/(?:stories|Sci-fi)/[^\/]+/([0-9a-zA-Z\-]+)/?.*', i, re.IGNORECASE):
 			await message.reply(embed=FictionDotLiveEmbed(i))
 
-
-bot.run(BOT_TOKEN)
+if __name__ == '__main__':
+	bot.run(BOT_TOKEN)
