@@ -31,6 +31,9 @@ def FictionDotLiveEmbed(URL: str):
 
 		embed.set_thumbnail(url=FLReply['COVER_IMAGE'])
 
+		if len(FLReply['OTHER_AUTHORS']) != 0:
+			embed.add_field(name="Other Authors", value=" • ".join(FLReply['OTHER_AUTHORS']), inline=False)
+
 		if FLReply['AUTHOR_NOTE'] != ' ':
 			embed.add_field(name="Author's Note", value=FLReply['AUTHOR_NOTE'], inline=False)
 

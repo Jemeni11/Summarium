@@ -10,8 +10,13 @@ def fictiondotlive(url: str):
 
 	TITLE = response['t'][:-4] if '<br>' == response['t'][-4:] else response['t']
 	AUTHOR = response['u'][0]['n']
+	OTHER_AUTHORS = []
+	if 'u2' in response.keys():
+		for i in response['u2']:
+			if i['n'].strip() != '':
+				OTHER_AUTHORS.append(f"[{i['n']}](https://fiction.live/user/{i['n']})")
 
-	if not 'a' in response['u'][0].keys():
+	if 'a' not in response['u'][0].keys():
 		AUTHOR_IMAGE = 'https://ddx5i92cqts4o.cloudfront.net/images/1e1nvq5tm_fllogo.png'
 	else:
 		AUTHOR_IMAGE = response['u'][0]['a']
@@ -54,6 +59,7 @@ def fictiondotlive(url: str):
 	return {
 		'TITLE': TITLE,
 		'AUTHOR': AUTHOR,
+		'OTHER_AUTHORS': OTHER_AUTHORS,
 		'AUTHOR_IMAGE': AUTHOR_IMAGE,
 		'AUTHOR_LINK': AUTHOR_LINK,
 		'STORY_STATUS': STORY_STATUS,
