@@ -166,7 +166,7 @@ def ArchiveOfOurOwnEmbed(url: str):
 			if AO3Reply['WORKS'] != "N/A":
 				if len(" • ".join(AO3Reply['WORKS'])) <= 1024:
 					WORKS = ' • '.join(AO3Reply['WORKS'])
-					print(WORKS)
+					embed.add_field(name="Works", value=WORKS, inline=False)
 				else:
 					WORKS_ARR = f"{' • '.join(AO3Reply['WORKS'])[:1015]} ..."
 					if WORKS_ARR[1014] != ')':
