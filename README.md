@@ -3,8 +3,6 @@ Summarium is a discord bot built with Python that scrapes metadata from certain 
 
 # v1.0.0
 
-<hr>
-
 ###  Sites:
 - [x] ScribbleHub
   - [x] Stories
@@ -17,3 +15,5 @@ Summarium is a discord bot built with Python that scrapes metadata from certain 
   - [x] Stories
 - [x] Fiction.live
   - [x] Stories
+- [x] WebNovel
+  - [x] Stories 

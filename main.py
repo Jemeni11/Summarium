@@ -10,6 +10,7 @@ from embed_messages.SH_Embed import ScribbleHubEmbed
 from embed_messages.AO3_Embed import ArchiveOfOurOwnEmbed
 from embed_messages.FF_Embed import FanFictionDotNetEmbed
 from embed_messages.FL_Embed import FictionDotLiveEmbed
+from embed_messages.WN_Embed import WebDotNovelEmbed
 
 from dotenv import load_dotenv
 
@@ -87,6 +88,8 @@ async def on_message(message):
 			await message.reply(file=FanFictionDotNetEmbed(i)[0], embed=FanFictionDotNetEmbed(i)[1])
 		elif re.search(r'^https?://fiction\.live/(?:stories|Sci-fi)/[^\/]+/([0-9a-zA-Z\-]+)/?.*', i, re.IGNORECASE):
 			await message.reply(embed=FictionDotLiveEmbed(i))
+		elif re.search(r"(www|m)\.webnovel\.com/book/", i, re.IGNORECASE):
+			await message.reply(embed=WebDotNovelEmbed(i))
 
 if __name__ == '__main__':
 	bot.run(BOT_TOKEN)
