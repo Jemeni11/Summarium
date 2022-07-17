@@ -50,7 +50,7 @@ def webdotnovel(url: str):
 		RATINGS = info_div.find_all('p', class_="_score ell mb24 fs0")[0].get_text(strip=True)
 		RATINGS_FINAL = ''
 		for i in RATINGS:
-			RATINGS_FINAL += f' out of 5 stars {i}' if i == '(' else i
+			RATINGS_FINAL += f' / 5 stars {i}' if i == '(' else i
 
 		about_div = PAGE.find('div', {'id': 'about'})
 
@@ -93,15 +93,3 @@ def webdotnovel(url: str):
 
 	else:
 		return "Error"
-
-
-if __name__ == '__main__':
-	# pprint(webdotnovel('https://www.webnovel.com/book/my-three-wives-are-beautiful-vampires._20553633305398405'))
-	pprint(webdotnovel("https://www.webnovel.com/book/dc-don't-utter-a-word_23499768705914305"))
-	# pprint(webdotnovel("https://www.webnovel.com/book/marvel-an-angel-called-lucifer-morningstar_19791838406403505"))
-	# pprint(webdotnovel("https://www.webnovel.com/book/dc-the-kryptonian-emperor_16887118406765405"))
-	# pprint(webdotnovel("https://www.webnovel.com/book/marvel-we-are-venom_16192094306251705"))
-	# pprint(webdotnovel("https://www.webnovel.com/book/marvel-gamer-path_21261155506979605"))
-	# pprint(webdotnovel("https://www.webnovel.com/book/twilight-we-are-venom!_19398083006358605"))
-	# pprint(webdotnovel("https://www.webnovel.com/book/avatar-the-last-airbender-cold-paths_18359936606504505"))
-	# pprint(webdotnovel("https://www.webnovel.com/book/eros-the-olympian-god_16670229705760805"))
