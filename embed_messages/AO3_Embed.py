@@ -13,66 +13,76 @@ def ArchiveOfOurOwnEmbed(url: str):
 		if re.search(r"^https://archiveofourown\.org/works/\d+", url, re.IGNORECASE) \
 				or re.search(r"^https://archiveofourown\.org/collections/\w+/\bworks\b/\d+", url, re.IGNORECASE):
 			AO3Reply = AO3instance.A03Story()
-			# Dealing with limits
-			AUTHOR_NAME = f"{AO3Reply['AUTHOR']}" if len(
-				AO3Reply['AUTHOR']) <= 256 else f"{AO3Reply['AUTHOR'][:251]} ..."
-			ARCHIVE_WARNING = f"{AO3Reply['ARCHIVE_WARNING']}" if len(
-				AO3Reply['ARCHIVE_WARNING']) <= 250 else f"{AO3Reply['ARCHIVE_WARNING'][:245]} ..."
-			FANDOM = f"{AO3Reply['FANDOM']}" if len(AO3Reply['FANDOM']) <= 250 else f"{AO3Reply['FANDOM'][:245]} ..."
-			if len(AO3Reply['RELATIONSHIPS']) == 3:
-				RELATIONSHIPS = AO3Reply['RELATIONSHIPS'][1] + " "
-			else:
-				RELATIONSHIPS = ', '.join(AO3Reply['RELATIONSHIPS'][1:6]).strip() + " "
-			if len(AO3Reply['CHARACTERS']) == 3:
-				CHARACTERS = AO3Reply['CHARACTERS'][1] + " "
-			else:
-				CHARACTERS = ', '.join(AO3Reply['CHARACTERS'][1:6]).strip() + " "
-			STATS = f"{AO3Reply['STATS']}" if len(AO3Reply['STATS']) <= 250 else f"{AO3Reply['STATS'][:245]} ..."
-			DESCRIPTION = AO3Reply['SUMMARY'] if len(AO3Reply['SUMMARY']) < 270 else f"{AO3Reply['SUMMARY'][:265]} ..."
-			# fields	Up to 25 field objects
-			# field.name	256 characters
-			# field.value	1024 characters
-			# footer.text	2048 characters
-			# author.name	256 characters
 
-			# Create the initial embed object #
-			embed = Embed(
-				title=AO3Reply['TITLE'],
-				url=url,
-				description=DESCRIPTION,
-				color=0xFF0000
-			)
+			if len(AO3Reply) > 1 and isinstance(AO3Reply, dict):
+				# Dealing with limits
+				AUTHOR_NAME = f"{AO3Reply['AUTHOR']}" if len(
+					AO3Reply['AUTHOR']) <= 256 else f"{AO3Reply['AUTHOR'][:251]} ..."
+				ARCHIVE_WARNING = f"{AO3Reply['ARCHIVE_WARNING']}" if len(
+					AO3Reply['ARCHIVE_WARNING']) <= 250 else f"{AO3Reply['ARCHIVE_WARNING'][:245]} ..."
+				FANDOM = f"{AO3Reply['FANDOM']}" if len(AO3Reply['FANDOM']) <= 250 else f"{AO3Reply['FANDOM'][:245]} ..."
+				if len(AO3Reply['RELATIONSHIPS']) == 3:
+					RELATIONSHIPS = AO3Reply['RELATIONSHIPS'][1] + " "
+				else:
+					RELATIONSHIPS = ', '.join(AO3Reply['RELATIONSHIPS'][1:6]).strip() + " "
+				if len(AO3Reply['CHARACTERS']) == 3:
+					CHARACTERS = AO3Reply['CHARACTERS'][1] + " "
+				else:
+					CHARACTERS = ', '.join(AO3Reply['CHARACTERS'][1:6]).strip() + " "
+				STATS = f"{AO3Reply['STATS']}" if len(AO3Reply['STATS']) <= 250 else f"{AO3Reply['STATS'][:245]} ..."
+				DESCRIPTION = AO3Reply['SUMMARY'] if len(AO3Reply['SUMMARY']) < 270 else f"{AO3Reply['SUMMARY'][:265]} ..."
+				# fields	Up to 25 field objects
+				# field.name	256 characters
+				# field.value	1024 characters
+				# footer.text	2048 characters
+				# author.name	256 characters
 
-			# Add author, thumbnail, fields, and footer to the embed
-			if len(AO3Reply['AUTHOR_LIST']) == 1:
-				embed.set_author(
-					name=AUTHOR_NAME,
-					url=AO3Reply['AUTHOR_LINK'],
-					icon_url="https://archiveofourown.org/images/ao3_logos/logo_42.png"
-				)
-				if AO3Reply['AUTHOR_IMAGE_LINK'].startswith('https://'):
-					embed.set_thumbnail(url=AO3Reply['AUTHOR_IMAGE_LINK'])
-			else:
-				embed.set_author(
-					name="Archive Of Our Own",
+				# Create the initial embed object #
+				embed = Embed(
+					title=AO3Reply['TITLE'],
 					url=url,
-					icon_url="https://archiveofourown.org/images/ao3_logos/logo_42.png"
+					description=DESCRIPTION,
+					color=0xFF0000
 				)
-				embed.add_field(name="Authors", value=' • '.join(AO3Reply['AUTHOR_LIST']), inline=False)
 
-			AWBoolean = True if len(AO3Reply['ARCHIVE_WARNING_LIST']) == 3 else False
-			embed.add_field(name="Archive Warnings", value=ARCHIVE_WARNING, inline=AWBoolean)
+				# Add author, thumbnail, fields, and footer to the embed
+				if len(AO3Reply['AUTHOR_LIST']) == 1:
+					embed.set_author(
+						name=AUTHOR_NAME,
+						url=AO3Reply['AUTHOR_LINK'],
+						icon_url="https://archiveofourown.org/images/ao3_logos/logo_42.png"
+					)
+					if AO3Reply['AUTHOR_IMAGE_LINK'].startswith('https://'):
+						embed.set_thumbnail(url=AO3Reply['AUTHOR_IMAGE_LINK'])
+				else:
+					embed.set_author(
+						name="Archive Of Our Own",
+						url=url,
+						icon_url="https://archiveofourown.org/images/ao3_logos/logo_42.png"
+					)
+					embed.add_field(name="Authors", value=' • '.join(AO3Reply['AUTHOR_LIST']), inline=False)
 
-			embed.add_field(name="Rating", value=AO3Reply['RATING'], inline=True)
-			embed.add_field(name="Language", value=AO3Reply['LANGUAGE'], inline=True)
+				AWBoolean = True if len(AO3Reply['ARCHIVE_WARNING_LIST']) == 3 else False
+				embed.add_field(name="Archive Warnings", value=ARCHIVE_WARNING, inline=AWBoolean)
 
-			embed.add_field(name="Fandom", value=FANDOM, inline=False)
+				embed.add_field(name="Rating", value=AO3Reply['RATING'], inline=True)
+				embed.add_field(name="Language", value=AO3Reply['LANGUAGE'], inline=True)
 
-			# if AO3Reply['CHARACTERS'] != 'N/A':
-			#   embed.add_field(name="Characters", value=CHARACTERS, inline=False)
+				embed.add_field(name="Fandom", value=FANDOM, inline=False)
 
-			# if AO3Reply['RELATIONSHIPS'] != 'N/A':
-			#   embed.add_field(name="Relationships", value=RELATIONSHIPS, inline=False)
+				# if AO3Reply['CHARACTERS'] != 'N/A':
+				#   embed.add_field(name="Characters", value=CHARACTERS, inline=False)
+
+				# if AO3Reply['RELATIONSHIPS'] != 'N/A':
+				#   embed.add_field(name="Relationships", value=RELATIONSHIPS, inline=False)
+			elif len(AO3Reply) == 1 and isinstance(AO3Reply, dict):
+				embed = Embed(
+					title="Mystery Work",
+					url=str(url),
+					description=f"{AO3Reply['DESCRIPTION']}",
+					color=0xFF0000
+				)
+				return embed
 
 			if AO3Reply['CHARACTERS'] != 'N/A' and AO3Reply['RELATIONSHIPS'] != 'N/A':
 				if len(AO3Reply['CHARACTERS']) + len(AO3Reply['RELATIONSHIPS']) <= 10:
