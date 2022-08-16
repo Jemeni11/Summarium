@@ -1,4 +1,6 @@
 # Summarium
+![Discord](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)
+
 Summarium is a discord bot built with Python that scrapes metadata from certain sites. 
 
 # v1.0.0
