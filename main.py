@@ -10,7 +10,7 @@ from embed_messages.SH_Embed import ScribbleHubEmbed
 from embed_messages.AO3_Embed import ArchiveOfOurOwnEmbed
 from embed_messages.FF_Embed import FanFictionDotNetEmbed
 from embed_messages.FL_Embed import FictionDotLiveEmbed
-from embed_messages.WN_Embed import WebDotNovelEmbed
+from embed_messages.WN_Embed import WebNovelEmbed
 
 from dotenv import load_dotenv
 
@@ -18,13 +18,11 @@ load_dotenv()
 
 BOT_TOKEN = os.getenv('TOKEN')
 
-description = """An example bot to showcase the discord.ext.commands extension
-module.
-There are a number of utility commands being showcased here."""
+description = """A discord bot that scrapes metadata from certain sites."""
 
 intents = discord.Intents.default()
 intents.members = True
-# intents.message_content = True 
+intents.message_content = True
 """
 This worked perfectly about an hour ago and now it throws the following error:
 
@@ -40,7 +38,7 @@ somehow even though it shouldn't.
 Putting this comment here incase it causes chaos later on.
 """
 
-bot = commands.Bot(command_prefix="?", description=description, intents=intents)
+bot = discord.Bot(description=description, intents=intents, debug_guilds=[916010209221177385])
 
 
 @bot.event
@@ -89,7 +87,49 @@ async def on_message(message):
 		elif re.search(r'^https?://fiction\.live/(?:stories|Sci-fi)/[^\/]+/([0-9a-zA-Z\-]+)/?.*', i, re.IGNORECASE):
 			await message.reply(embed=FictionDotLiveEmbed(i))
 		elif re.search(r"(www|m)\.webnovel\.com/book/", i, re.IGNORECASE):
-			await message.reply(embed=WebDotNovelEmbed(i))
+			await message.reply(embed=WebNovelEmbed(i))
+
+
+# Slash Commands
+# ScribbleHub
+@bot.command(name="scribblehub", description="Gets ScribbleHub Stories or Profiles metadata")
+async def scribblehub(ctx, scribblehub_url: discord.Option(input_type=str, description="The ScribbleHub Stories"
+																					   "/Profiles URL", required=True)):
+	await ctx.defer()
+	await ctx.respond(embed=ScribbleHubEmbed(scribblehub_url))
+
+
+# ArchiveOfOurOwn
+@bot.command(name="archive_of_our_own", description="Gets ArchiveOfOurOwn story/series/collection metadata")
+async def archive_of_our_own(ctx, ao3_url: discord.Option(input_type=str,
+														  description="The ArchiveOfOurOwn story/series/collection URL"
+	, required=True)):
+	await ctx.defer()
+	await ctx.respond(embed=ArchiveOfOurOwnEmbed(ao3_url))
+
+
+# FanFiction.net
+@bot.command(name="fanfictiondotnet", description="Gets FanFiction.Net story metadata")
+async def fanfictiondotnet(ctx, ff_url: discord.Option(input_type=str, description="The FanFiction.Net story URL",
+													   required=True)):
+	await ctx.defer()
+	await ctx.respond(file=FanFictionDotNetEmbed(ff_url)[0], embed=FanFictionDotNetEmbed(ff_url)[1])
+
+
+# Fiction.live
+@bot.command(name="fictiondotlive", description="Gets Fiction.Live story metadata")
+async def fictiondotlive(ctx, fl_url: discord.Option(input_type=str, description="The Fiction.Live story URL",
+													 required=True)):
+	await ctx.defer()
+	await ctx.respond(embed=FictionDotLiveEmbed(fl_url))
+
+
+# WebNovel
+@bot.command(name="webnovel", description="Gets WebNovel story metadata")
+async def webnovel(ctx, wn_url: discord.Option(input_type=str, description="The WebNovel story URL", required=True)):
+	await ctx.defer()
+	await ctx.respond(embed=WebNovelEmbed(wn_url))
+
 
 if __name__ == '__main__':
 	bot.run(BOT_TOKEN)
