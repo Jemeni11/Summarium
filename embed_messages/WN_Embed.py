@@ -1,5 +1,5 @@
 from discord import Embed
-from scrapers.webnovel import webdotnovel
+from scrapers.webnovel import webnovel
 import re
 from dateutil import tz
 from datetime import datetime
@@ -7,8 +7,8 @@ from datetime import datetime
 now = datetime.now(tz=tz.tzlocal())
 
 
-def WebDotNovelEmbed(URL: str):
-	WNinstance = webdotnovel(URL)
+def WebNovelEmbed(URL: str):
+	WNinstance = webnovel(URL)
 	try:
 		if re.search(r"(www|m)\.webnovel\.com/book/", URL, re.IGNORECASE):
 			# Create the initial embed object #

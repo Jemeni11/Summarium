@@ -4,7 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 
 
-def webdotnovel(url: str):
+def webnovel(url: str):
 	global csrf_token
 	if "_" in url:
 		STORY_ID = url.split("_")[-1]
