@@ -13,6 +13,7 @@ from embed_messages.FL_Embed import FictionDotLiveEmbed
 from embed_messages.WN_Embed import WebNovelEmbed
 
 from dotenv import load_dotenv
+from keep_alive import keep_alive
 
 load_dotenv()
 
@@ -132,4 +133,5 @@ async def webnovel(ctx, wn_url: discord.Option(input_type=str, description="The 
 
 
 if __name__ == '__main__':
+	keep_alive()
 	bot.run(BOT_TOKEN)
