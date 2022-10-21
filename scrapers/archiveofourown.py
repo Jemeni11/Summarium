@@ -232,7 +232,7 @@ class ArchiveOfOurOwn:
 				descriptionVar = str(descriptionVar).replace('</p><p>', '</p><p>\r\n</p><p>')
 				DESCRIPTION = BeautifulSoup(descriptionVar, 'lxml').get_text()
 			except:
-				DESCRIPTION = ' '
+				DESCRIPTION = None
 
 			try:
 				notesVar = SERIES_DATA.find_all('dt', string='Notes:')[0].next_sibling.next_sibling.blockquote
@@ -240,7 +240,7 @@ class ArchiveOfOurOwn:
 				notesVar = str(notesVar).replace('</p><p>', '</p><p>\r\n</p><p>')
 				NOTES = BeautifulSoup(notesVar, 'lxml').get_text()
 			except:
-				NOTES = ' '
+				NOTES = None
 
 			# WORKS
 			try:
