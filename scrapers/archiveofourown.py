@@ -1,3 +1,4 @@
+import pprint
 import typing
 import requests
 from bs4 import BeautifulSoup
@@ -116,21 +117,20 @@ class ArchiveOfOurOwn:
 				# ===============EXTRAS
 				STATS_SOUP = self.soup.find('dl', class_='stats')
 				STATS_LIST = []
-				for _ in STATS_SOUP.contents:
-					if _.get_text()[-1] != ':':
-						STATS_LIST.append(f"{_.get_text()} •")
-					else:
-						STATS_LIST.append(f"**{_.get_text()}**")
+				Stats_that_need_a_comma = ["Words:", "Comments:", "Kudos:", "Bookmarks:", "Hits:"]
+				for group in self.chunker(STATS_SOUP.contents, 2):
+					new_group = [group[0].get_text(), group[1].get_text()]
+					i, j = new_group
+					if i[-1] == ':':
+						STATS_LIST.append(i)
+						if i in Stats_that_need_a_comma:
+							STATS_LIST.append(f"{int(j):,} •")
+						else:
+							STATS_LIST.append(f"{j} •")
 				try:
-					# Removes Hits
-					STATS_LIST.pop()
-					STATS_LIST.pop()
 					# Remove Comments
-					STATS_LIST.remove(STATS_LIST[STATS_LIST.index('**Comments:**') + 1])
-					STATS_LIST.remove('**Comments:**')
-					# Remove Bookmarks
-					STATS_LIST.remove(STATS_LIST[STATS_LIST.index('**Bookmarks:**') + 1])
-					STATS_LIST.remove('**Bookmarks:**')
+					STATS_LIST.remove(STATS_LIST[STATS_LIST.index('Comments:') + 1])
+					STATS_LIST.remove('Comments:')
 				except:
 					pass
 				STATS = ' '.join(STATS_LIST)[:-2]
