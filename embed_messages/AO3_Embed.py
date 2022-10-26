@@ -43,7 +43,7 @@ def ArchiveOfOurOwnEmbed(url: str):
 									and {len(AO3Reply['CHARACTERS'][7:])} more"
 
 				STATS = f"{AO3Reply['STATS']}" if len(AO3Reply['STATS']) <= 250 else f"{AO3Reply['STATS'][:245]} ..."
-				DESCRIPTION = AO3Reply['SUMMARY'] if len(AO3Reply['SUMMARY']) < 350 else f"{AO3Reply['SUMMARY'][:345]} ..."
+				DESCRIPTION = AO3Reply['SUMMARY'] if len(AO3Reply['SUMMARY']) < 375 else f"{AO3Reply['SUMMARY'][:370]} ..."
 				# fields	Up to 25 field objects
 				# field.name	256 characters
 				# field.value	1024 characters
@@ -85,12 +85,12 @@ def ArchiveOfOurOwnEmbed(url: str):
 
 				embed.add_field(
 					name="Characters",
-					value=CHARACTERS if AO3Reply['CHARACTERS'] != 'N/A' else "No Characters available",
+					value=CHARACTERS if AO3Reply['CHARACTERS'] != 'N/A' else "No Characters",
 					inline=False
 				)
 				embed.add_field(
 					name="Relationships",
-					value=RELATIONSHIPS if AO3Reply['RELATIONSHIPS'] != 'N/A' else "No Relationships available",
+					value=RELATIONSHIPS if AO3Reply['RELATIONSHIPS'] != 'N/A' else "No Relationships",
 					inline=False
 				)
 
@@ -98,7 +98,6 @@ def ArchiveOfOurOwnEmbed(url: str):
 					embed.add_field(name="Series", value=' • '.join(AO3Reply['SERIES']), inline=False)
 
 				embed.add_field(name="Stats", value=STATS, inline=False)
-
 				embed.set_footer(text=f"Info retrieved by Summarium on {now.strftime('%a %-d at %X')}")
 
 				return embed
