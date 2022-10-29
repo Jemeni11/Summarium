@@ -1,3 +1,5 @@
+import pprint
+
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
@@ -5,7 +7,6 @@ from datetime import datetime
 
 def fictiondotlive(url: str):
 	STORY_ID = url.split("/")[5]
-
 	response = requests.get(f'https://fiction.live/api/node/{STORY_ID}').json()
 
 	TITLE = response['t'][:-4] if '<br>' == response['t'][-4:] else response['t']
@@ -41,6 +42,13 @@ def fictiondotlive(url: str):
 	DESCRIPTIONVar = str(DESCRIPTION).replace('<br>', '\r\n')
 	DESCRIPTIONVar2 = str(DESCRIPTIONVar).replace('</p><p>', '</p><p>\r\n</p><p>')
 	DESCRIPTION = BeautifulSoup(DESCRIPTIONVar2, 'lxml').get_text()
+
+	if AUTHOR_NOTE.strip() == DESCRIPTION.strip():
+		AUTHOR_NOTE = ""
+
+	if AUTHOR_NOTE.strip() != "" and DESCRIPTION.strip() == "":
+		DESCRIPTION = AUTHOR_NOTE
+		AUTHOR_NOTE = ""
 
 	TAGS = ' ' if 'ta' not in response.keys() else response['ta']
 	NOS_OF_CHAPTERS = ' ' if 'bm' not in response.keys() else f"{len(response['bm']):,}"
