@@ -1,4 +1,4 @@
-import pprint
+import pprint  # For testing
 import typing
 import requests
 from bs4 import BeautifulSoup
@@ -58,9 +58,10 @@ class ArchiveOfOurOwn:
 		try:
 			if self.soup.title.getText(strip=True).startswith("Mystery Work"):
 				MYSTERY_DESCRIPTION = self.soup.find('div', {'id': 'main'}).find_all('p', class_='notice')[0]
+				MYSTERY_WORK_DETAILS_LINK = f"https://archiveofourown.org{MYSTERY_DESCRIPTION.a['href']}"
 				DESCRIPTION_TEXT = str(MYSTERY_DESCRIPTION).replace(
-					'<a href="/collections/null">null</a>',
-					f"[null](https://archiveofourown.org/collections/null)"
+					f"{MYSTERY_DESCRIPTION.a}",
+					f"[{MYSTERY_DESCRIPTION.get_text(strip=True).split(':')[1]}]({MYSTERY_WORK_DETAILS_LINK})"
 				)
 				FINAL_DESCRIPTION = BeautifulSoup(DESCRIPTION_TEXT, "lxml").get_text(strip=True)
 				FINAL_DESCRIPTION = FINAL_DESCRIPTION.replace("      ", "")
