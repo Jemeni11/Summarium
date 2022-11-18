@@ -4,6 +4,7 @@ import re
 import os
 
 import discord
+from discord import Embed
 from discord.ext import commands
 
 from embed_messages.SH_Embed import ScribbleHubEmbed
@@ -41,6 +42,8 @@ Putting this comment here incase it causes chaos later on.
 
 bot = discord.Bot(description=description, intents=intents, debug_guilds=[916010209221177385])
 
+
+# bot = commands.Bot(command_prefix=commands.when_mentioned_or("!"))
 
 @bot.event
 async def on_ready():
@@ -130,6 +133,72 @@ async def fictiondotlive(ctx, fl_url: discord.Option(input_type=str, description
 async def webnovel(ctx, wn_url: discord.Option(input_type=str, description="The WebNovel story URL", required=True)):
 	await ctx.defer()
 	await ctx.respond(embed=WebNovelEmbed(wn_url))
+
+
+@bot.command(name="allowall", description="Allow the bot to operate in all channels")
+async def allow_all(ctx):
+	"""Adds send_message perm for all the channels."""
+	if not ctx.author.guild_permissions.administrator:
+		await ctx.defer()
+		try:
+			return await ctx.send(
+				embed=discord.Embed(
+					description="You are missing Administrator permission to run this command."))
+		except Exception as err:  # send a DM if send message perms is not enabled
+			return await ctx.author.send(
+				embed=discord.Embed(
+					description="You are missing Administrator permission to run this command."))
+
+	bot_user = ctx.guild.get_member(BOT_TOKEN)
+	channel_list = ctx.guild.channels
+	for channel in channel_list:
+		try:
+			await ctx.defer()
+			await channel.set_permissions(
+				bot_user,
+				send_messages=True, manage_permissions=True)
+		except Exception as err:
+			print(err)
+
+	embed = discord.Embed(
+		description="The bot will now start responding to all the channels."
+	)
+	await ctx.defer()
+	await ctx.channel.send(embed=embed)
+
+
+@bot.command(name="disallowall", description="Disallow the bot from operating in all channels")
+async def disallow_all(ctx):
+	"""Removes send_message perm for all the channels."""
+
+	if not ctx.author.guild_permissions.administrator:
+		try:
+			# send message in channel
+			return await ctx.send(
+				embed=Embed(description="You are missing Administrator permission to run this command."))
+		except Exception as err:  # send a DM if send message perms is not enabled
+			return await ctx.author.send(
+				embed=Embed(description="You are missing Administrator permission to run this command."))
+
+	embed = Embed(description="The bot will now stop responding to all the channels.")
+	try:
+		await ctx.channel.send(embed=embed)
+	except Exception as err:
+		embed = Embed(description=
+					  "The bot is not allowed to send messages in that channel. "
+					  "Ask one of the server admins to use the `,allow` command in that channel to enable it."
+					  )
+		await ctx.author.send(embed=embed)
+
+	bot_user = bot.user
+	channel_list = ctx.guild.channels
+	for channel in channel_list:
+		try:
+			await channel.set_permissions(
+				bot_user,
+				send_messages=False, manage_permissions=True)
+		except Exception as err:
+			print("line201", err)
 
 
 if __name__ == '__main__':
