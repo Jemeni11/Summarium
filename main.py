@@ -12,6 +12,7 @@ from embed_messages.AO3_Embed import ArchiveOfOurOwnEmbed
 from embed_messages.FF_Embed import FanFictionDotNetEmbed
 from embed_messages.FL_Embed import FictionDotLiveEmbed
 from embed_messages.WN_Embed import WebNovelEmbed
+from embed_messages.SB_Embed import SpaceBattlesEmbed
 
 from dotenv import load_dotenv
 from keep_alive import keep_alive
@@ -92,6 +93,8 @@ async def on_message(message):
 			await message.reply(embed=FictionDotLiveEmbed(i))
 		elif re.search(r"(www|m)\.webnovel\.com/book/", i, re.IGNORECASE):
 			await message.reply(embed=WebNovelEmbed(i))
+		elif re.search(r"spacebattles\.com/threads/(([a-zA-Z]+-*)+\.[0-9]+)/([a-zA-Z0-9#-/]+)*", i, re.IGNORECASE):
+			await message.reply(embed=SpaceBattlesEmbed(i))
 
 
 # Slash Commands
@@ -135,6 +138,13 @@ async def webnovel(ctx, wn_url: discord.Option(input_type=str, description="The 
 	await ctx.respond(embed=WebNovelEmbed(wn_url))
 
 
+# SpaceBattles
+@bot.command(name="spacebattles", description="Gets SpaceBattles story metadata")
+async def spacebattles(ctx, sb_url: discord.Option(input_type=str, description="The SpaceBattles story URL", required=True)):
+	await ctx.defer()
+	await ctx.respond(embed=SpaceBattlesEmbed(sb_url))
+
+
 @bot.command(name="allowall", description="Allow the bot to operate in all channels")
 async def allow_all(ctx):
 	"""Adds send_message perm for all the channels."""
@@ -171,7 +181,11 @@ async def allow_all(ctx):
 async def disallow_all(ctx):
 	"""Removes send_message perm for all the channels."""
 
+	await ctx.defer()
 	if not ctx.author.guild_permissions.administrator:
+		print(ctx.author)
+		print(ctx.author.guild_permissions)
+		print(ctx.author.guild_permissions.administrator)
 		try:
 			# send message in channel
 			return await ctx.send(
@@ -194,6 +208,7 @@ async def disallow_all(ctx):
 	channel_list = ctx.guild.channels
 	for channel in channel_list:
 		try:
+			await ctx.defer()
 			await channel.set_permissions(
 				bot_user,
 				send_messages=False, manage_permissions=True)

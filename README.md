@@ -19,3 +19,6 @@ Add this bot to your server by clicking this [link](https://discord.com/api/oaut
   - [x] Stories
 - [x] WebNovel
   - [x] Stories 
+- [x] SpaceBattles
+  - [x] Stories
+  - [ ] Authors
