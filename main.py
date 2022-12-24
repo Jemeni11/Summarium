@@ -4,6 +4,7 @@ import re
 import os
 
 import discord
+from discord import Embed
 from discord.ext import commands
 
 from embed_messages.SH_Embed import ScribbleHubEmbed
@@ -11,6 +12,7 @@ from embed_messages.AO3_Embed import ArchiveOfOurOwnEmbed
 from embed_messages.FF_Embed import FanFictionDotNetEmbed
 from embed_messages.FL_Embed import FictionDotLiveEmbed
 from embed_messages.WN_Embed import WebNovelEmbed
+from embed_messages.SB_Embed import SpaceBattlesEmbed
 
 from dotenv import load_dotenv
 from keep_alive import keep_alive
@@ -41,6 +43,8 @@ Putting this comment here incase it causes chaos later on.
 
 bot = discord.Bot(description=description, intents=intents, debug_guilds=[916010209221177385])
 
+
+# bot = commands.Bot(command_prefix=commands.when_mentioned_or("!"))
 
 @bot.event
 async def on_ready():
@@ -89,6 +93,8 @@ async def on_message(message):
 			await message.reply(embed=FictionDotLiveEmbed(i))
 		elif re.search(r"(www|m)\.webnovel\.com/book/", i, re.IGNORECASE):
 			await message.reply(embed=WebNovelEmbed(i))
+		elif re.search(r"spacebattles\.com/threads/(([a-zA-Z%0-9]+-*)+\.[0-9]+)/", i, re.IGNORECASE):
+			await message.reply(embed=SpaceBattlesEmbed(i))
 
 
 # Slash Commands
@@ -130,6 +136,13 @@ async def fictiondotlive(ctx, fl_url: discord.Option(input_type=str, description
 async def webnovel(ctx, wn_url: discord.Option(input_type=str, description="The WebNovel story URL", required=True)):
 	await ctx.defer()
 	await ctx.respond(embed=WebNovelEmbed(wn_url))
+
+
+# SpaceBattles
+@bot.command(name="spacebattles", description="Gets SpaceBattles story metadata")
+async def spacebattles(ctx, sb_url: discord.Option(input_type=str, description="The SpaceBattles story URL", required=True)):
+	await ctx.defer()
+	await ctx.respond(embed=SpaceBattlesEmbed(sb_url))
 
 
 if __name__ == '__main__':
