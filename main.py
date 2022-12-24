@@ -93,7 +93,7 @@ async def on_message(message):
 			await message.reply(embed=FictionDotLiveEmbed(i))
 		elif re.search(r"(www|m)\.webnovel\.com/book/", i, re.IGNORECASE):
 			await message.reply(embed=WebNovelEmbed(i))
-		elif re.search(r"spacebattles\.com/threads/(([a-zA-Z]+-*)+\.[0-9]+)/([a-zA-Z0-9#-/]+)*", i, re.IGNORECASE):
+		elif re.search(r"spacebattles\.com/threads/(([a-zA-Z%0-9]+-*)+\.[0-9]+)/", i, re.IGNORECASE):
 			await message.reply(embed=SpaceBattlesEmbed(i))
 
 

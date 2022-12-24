@@ -32,7 +32,7 @@ def SpaceBattlesEmbed(URL: str):
 			icon_url=SBReply['AUTHOR_AVATAR_LINK']
 		)
 
-		embed.set_thumbnail(url="https://forums.spacebattles.com/data/svg/2/1/1669009381/2022FinalLogo.png")
+		embed.set_thumbnail(url=SBReply['COVER_IMAGE'])
 
 		if SBReply['STORY_STATUS']:
 			embed.add_field(name="Story Status", value=SBReply['STORY_STATUS'], inline=True)
@@ -66,7 +66,7 @@ def SpaceBattlesEmbed(URL: str):
 
 		embed.add_field(name="Tags", value=TAGS, inline=False)
 
-		embed.set_footer(text=f"Info retrieved by Summarium on {now.strftime('%a %-d at %X')}")
+		embed.set_footer(text=f"Info retrieved by Summarium on {now.strftime('%a %-d %b %Y at %X')}")
 
 		return embed
 

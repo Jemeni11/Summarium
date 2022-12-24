@@ -16,8 +16,8 @@ class SpaceBattles:
 			'User-Agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, '
 						  'like Gecko) Chrome/107.0.0.0 Mobile Safari/537.36',
 		}
-
-		m = re.search(r"spacebattles\.com/threads/(([a-zA-Z]+-*)+\.[0-9]+)/([a-zA-Z0-9#-/]+)*", self.URL, re.I)
+		# 	([a-zA-Z0-9#-/]+)*
+		m = re.search(r"spacebattles\.com/threads/(([a-zA-Z%0-9]+-*)+\.[0-9]+)/", self.URL, re.I)
 		newURL = f"https://forums.spacebattles.com/threads/{m.group(1)}/reader/"
 
 		self.scraper = requests.Session()
@@ -50,6 +50,11 @@ class SpaceBattles:
 		BODY_CONTENT_BLOCK_TWO = BODY_CONTENT.find_all("div", class_="block")[1]
 		BODY_CONTENT_BLOCK_THREE = BODY_CONTENT.find_all("div", class_="block")[2]
 
+		if BODY.find('span', class_='threadmarkListingHeader-icon'):
+			COVER_IMAGE = f"https://forums.spacebattles.com{BODY.find('span', class_='threadmarkListingHeader-icon').a.img['src']}"
+		else:
+			COVER_IMAGE = "https://forums.spacebattles.com/data/svg/2/1/1669334645/2022_favicon_192x192.png"
+
 		DESCRIPTION_HEADER = HEADER.find("div", class_="p-description")
 
 		STORY_TITLE = HEADER.find("div", class_="p-title").find("h1", class_="p-title-value").get_text(strip=True)
@@ -65,9 +70,11 @@ class SpaceBattles:
 		STORY_STATUS = THREADMARK_HEADER_STATS[1].dd.get_text(strip=True)
 		WATCHERS = THREADMARK_HEADER_STATS[2].dd.get_text(strip=True)
 		RECENT_READERS = THREADMARK_HEADER_STATS[3].dd.get_text(strip=True)
-		THREADMARKS = THREADMARK_HEADER_STATS[4].dd.get_text(strip=True)
 
 		DESCRIPTION = BODY_CONTENT_BLOCK_ONE.find("div", class_="threadmarkListingHeader-extraInfo").get_text(strip=True)
+
+		THREADMARKS = BODY_CONTENT_BLOCK_TWO.find(
+			"span", {"data-xf-init": "threadmarks-toggle-storage"}).get_text(strip=True).split(" ")[1][1:]
 
 		WORDS = BODY_CONTENT_BLOCK_TWO.find(
 			"span", {"data-xf-init": "threadmarks-toggle-storage"}).get_text(strip=True).split("threadmarks, ")[-1][:-1]
@@ -84,6 +91,7 @@ class SpaceBattles:
 			"AUTHOR": AUTHOR,
 			"AUTHOR_PROFILE_LINK": AUTHOR_PROFILE_LINK,
 			"AUTHOR_AVATAR_LINK": AUTHOR_AVATAR_LINK,
+			"COVER_IMAGE": COVER_IMAGE,
 			"CREATED_ON": CREATED_ON,
 			"TAGS": TAGS,
 			"STORY_STATUS": STORY_STATUS,
@@ -95,3 +103,8 @@ class SpaceBattles:
 			"LAST_UPDATED": LAST_UPDATED,
 			"IS_FETCHED": IS_FETCHED
 		}
+
+
+if __name__ == '__main__':
+	s = SpaceBattles("https://forums.spacebattles.com/threads/a-grievous-monster-sw-si.1049660/reader")
+	pprint.pprint(s.SBWork())
