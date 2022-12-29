@@ -47,6 +47,9 @@ def ScribbleHubEmbed(URL: str):
 
 			embed.add_field(name="Genres", value=SHReply['GENRES'], inline=False)
 
+			if SHReply['RELATED_SERIES'] is not None:
+				embed.add_field(name="Related Series", value=SHReply['RELATED_SERIES'], inline=False)
+
 			embed.set_footer(text=f"Info retrieved by Summarium on {now.strftime('%a %-d at %X')}")
 
 			return embed
