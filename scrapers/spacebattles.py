@@ -17,7 +17,7 @@ class SpaceBattles:
 						  'like Gecko) Chrome/107.0.0.0 Mobile Safari/537.36',
 		}
 		# 	([a-zA-Z0-9#-/]+)*
-		m = re.search(r"spacebattles\.com/threads/(([a-zA-Z%0-9]+-*)+\.[0-9]+)/", self.URL, re.I)
+		m = re.search(r"^https?://forums?\.spacebattles\.com/threads/(([a-zA-Z%0-9]+-*)+\.[0-9]+)/?", self.URL, re.I)
 		newURL = f"https://forums.spacebattles.com/threads/{m.group(1)}/reader/"
 
 		self.scraper = requests.Session()
