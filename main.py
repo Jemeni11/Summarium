@@ -26,20 +26,6 @@ description = """A discord bot that scrapes metadata from certain sites."""
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
-"""
-This worked perfectly about an hour ago and now it throws the following error:
-
-(virtualenv) nonso@HPEnvy:~/Documents/Code/Projects/Summarium$ python3 main.py 
-Traceback (most recent call last):
-  File "main.py", line 25, in <module>
-    intents.message_content = True
-AttributeError: 'Intents' object has no attribute 'message_content'
-(virtualenv) nonso@HPEnvy:~/Documents/Code/Projects/Summarium$
-
-So I commented that line out and ran my code again and it worked 
-somehow even though it shouldn't.
-Putting this comment here incase it causes chaos later on.
-"""
 
 bot = discord.Bot(description=description, intents=intents, debug_guilds=[916010209221177385])
 
