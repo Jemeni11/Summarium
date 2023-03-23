@@ -11,6 +11,7 @@ class ArchiveOfOurOwn:
 		if re.search(r"^https://archiveofourown\.org/works/\d+", self.URL, re.IGNORECASE) \
 				or re.search(r"^https://archiveofourown\.org/collections/\w+/\bworks\b/\d+", self.URL, re.IGNORECASE):
 			if isinstance(self.URL, str) and self.URL[-16:] != '?view_adult=true':
+				# TODO: It should be ?view_full_work=true&view_adult=true
 				self.URL += '?view_adult=true'
 		elif re.search(r"^https://archiveofourown\.org/series/\d+", self.URL, re.IGNORECASE):
 			pass
@@ -65,7 +66,9 @@ class ArchiveOfOurOwn:
 				)
 				FINAL_DESCRIPTION = BeautifulSoup(DESCRIPTION_TEXT, "lxml").get_text(strip=True)
 				FINAL_DESCRIPTION = FINAL_DESCRIPTION.replace("      ", "")
-				return {'DESCRIPTION': FINAL_DESCRIPTION}
+				return {'TYPE': 'MYSTERY_WORK', 'EMBED_TITLE': 'Mystery Work', 'DESCRIPTION': FINAL_DESCRIPTION}
+			elif self.soup.title.getText(strip=True) == "New\n          Session\n        |\n        Archive of Our Own":
+				return {'TYPE': 'LOGIN_REQUIRED', 'EMBED_TITLE': 'Login Required', 'DESCRIPTION': 'You need to login to access this work'}
 			else:
 				# ===============TAGS
 				RATING = self.soup.find('dd', class_='rating tags').get_text(strip=True)
@@ -158,12 +161,13 @@ class ArchiveOfOurOwn:
 					AUTHOR_LIST = ["[Anonymous](https://archiveofourown.org/collections/anonymous/profile)"]
 
 				AUTHOR_IMAGE_SOUP = BeautifulSoup(self.scraper.get(AUTHOR_LINK).text, "lxml").find('div',
-																							   class_="primary header module")
+																								   class_="primary header module")
 				AUTHOR_IMAGE = AUTHOR_IMAGE_SOUP.find(class_="icon").img['src']
 				AUTHOR_IMAGE_LINK = AUTHOR_IMAGE if AUTHOR_IMAGE.startswith(
 					'https://') else f"https://archiveofourown.org{AUTHOR_IMAGE}"
 
 				return {
+					'TYPE': 'STORY',
 					'RATING': RATING,
 					'ARCHIVE_WARNING': ARCHIVE_WARNING,
 					'ARCHIVE_WARNING_LIST': ARCHIVE_WARNING_LIST,

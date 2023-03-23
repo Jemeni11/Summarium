@@ -14,7 +14,7 @@ def ArchiveOfOurOwnEmbed(url: str):
 				or re.search(r"^https://archiveofourown\.org/collections/\w+/\bworks\b/\d+", url, re.IGNORECASE):
 			AO3Reply = AO3instance.A03Story()
 
-			if len(AO3Reply) > 1 and isinstance(AO3Reply, dict):
+			if AO3Reply['TYPE'] == "STORY" and isinstance(AO3Reply, dict):
 				# Dealing with limits
 				AUTHOR_NAME = f"{AO3Reply['AUTHOR']}" if len(
 					AO3Reply['AUTHOR']) <= 256 else f"{AO3Reply['AUTHOR'][:251]} ..."
@@ -102,11 +102,11 @@ def ArchiveOfOurOwnEmbed(url: str):
 
 				return embed
 
-			elif len(AO3Reply) == 1 and isinstance(AO3Reply, dict):
+			elif (AO3Reply['TYPE'] in ["LOGIN_REQUIRED", "MYSTERY_WORK"]) and isinstance(AO3Reply, dict):
 				embed = Embed(
-					title="Mystery Work",
+					title=AO3Reply["EMBED_TITLE"],
 					url=str(url),
-					description=f"{AO3Reply['DESCRIPTION']}",
+					description=AO3Reply['DESCRIPTION'],
 					color=0xFF0000
 				)
 				return embed
