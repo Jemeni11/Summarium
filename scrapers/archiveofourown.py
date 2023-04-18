@@ -10,14 +10,18 @@ class ArchiveOfOurOwn:
 		self.URL = URL
 		if re.search(r"^https://archiveofourown\.org/works/\d+", self.URL, re.IGNORECASE) \
 				or re.search(r"^https://archiveofourown\.org/collections/\w+/\bworks\b/\d+", self.URL, re.IGNORECASE):
-			if isinstance(self.URL, str) and self.URL[-16:] != '?view_adult=true':
-				# TODO: It should be ?view_full_work=true&view_adult=true
-				self.URL += '?view_adult=true'
+			url_list = self.URL.split("/")
+			if self.URL.startswith("https://archiveofourown.org/works/"):
+				self.URL = f"https://archiveofourown.org/works/{url_list[4]}?view_full_work=true&view_adult=true"
+			else:
+				# view_full_work=true might be unnecessary, but I'll leave it here anyway.
+				self.URL = f"https://archiveofourown.org/collections/{url_list[4]}/works/{url_list[6]}?view_full_work=true&view_adult=true"
 		elif re.search(r"^https://archiveofourown\.org/series/\d+", self.URL, re.IGNORECASE):
 			pass
 		elif re.search(r"^https://archiveofourown\.org/collections/\w+", self.URL, re.IGNORECASE):
 			if self.URL.split('/')[-1] != 'profile':
 				self.URL += '/profile'
+
 		self.scraper = requests.Session()
 		webPage = self.scraper.get(self.URL)
 		self.soup = BeautifulSoup(webPage.text, "lxml")
@@ -68,7 +72,8 @@ class ArchiveOfOurOwn:
 				FINAL_DESCRIPTION = FINAL_DESCRIPTION.replace("      ", "")
 				return {'TYPE': 'MYSTERY_WORK', 'EMBED_TITLE': 'Mystery Work', 'DESCRIPTION': FINAL_DESCRIPTION}
 			elif self.soup.title.getText(strip=True) == "New\n          Session\n        |\n        Archive of Our Own":
-				return {'TYPE': 'LOGIN_REQUIRED', 'EMBED_TITLE': 'Login Required', 'DESCRIPTION': 'You need to login to access this work'}
+				return {'TYPE': 'LOGIN_REQUIRED', 'EMBED_TITLE': 'Login Required',
+						'DESCRIPTION': 'You need to login to access this work'}
 			else:
 				# ===============TAGS
 				RATING = self.soup.find('dd', class_='rating tags').get_text(strip=True)
@@ -128,7 +133,10 @@ class ArchiveOfOurOwn:
 					if i[-1] == ':':
 						STATS_LIST.append(i)
 						if i in Stats_that_need_a_comma:
-							STATS_LIST.append(f"{int(j):,} •")
+							try:
+								STATS_LIST.append(f"{int(j):,} •")
+							except ValueError:
+								STATS_LIST.append(f"{int(j.replace(',', '')):,} •")
 						else:
 							STATS_LIST.append(f"{j} •")
 				try:
