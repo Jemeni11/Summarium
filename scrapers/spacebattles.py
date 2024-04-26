@@ -14,7 +14,7 @@ class SpaceBattles:
 
 		headers = {
 			'User-Agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, '
-						  'like Gecko) Chrome/107.0.0.0 Mobile Safari/537.36',
+			              'like Gecko) Chrome/107.0.0.0 Mobile Safari/537.36',
 		}
 		# 	([a-zA-Z0-9#-/]+)*
 		m = re.search(r"^https?://forums?\.spacebattles\.com/threads/(([a-zA-Z%0-9]+-*)+\.[0-9]+)/?", self.URL, re.I)
@@ -50,9 +50,9 @@ class SpaceBattles:
 		BODY_CONTENT_BLOCK_TWO = BODY_CONTENT.find_all("div", class_="block")[1]
 		BODY_CONTENT_BLOCK_THREE = BODY_CONTENT.find_all("div", class_="block")[2]
 
-		if BODY.find('span', class_='threadmarkListingHeader-icon'):
-			COVER_IMAGE = f"https://forums.spacebattles.com{BODY.find('span', class_='threadmarkListingHeader-icon').a.img['src']}"
-		else:
+		try:
+			COVER_IMAGE = f"https://forums.spacebattles.com{BODY.find('span', class_='threadmarkListingHeader-icon').span.img['src']}"
+		except Exception as _e:
 			COVER_IMAGE = "https://forums.spacebattles.com/data/svg/2/1/1669334645/2022_favicon_192x192.png"
 
 		DESCRIPTION_HEADER = HEADER.find("div", class_="p-description")
@@ -71,7 +71,14 @@ class SpaceBattles:
 		WATCHERS = THREADMARK_HEADER_STATS[2].dd.get_text(strip=True)
 		RECENT_READERS = THREADMARK_HEADER_STATS[3].dd.get_text(strip=True)
 
-		DESCRIPTION = BODY_CONTENT_BLOCK_ONE.find("div", class_="threadmarkListingHeader-extraInfo").get_text(strip=True)
+		description_body = BODY_CONTENT_BLOCK_ONE.find("div", class_="threadmarkListingHeader-extraInfo")
+
+		DESCRIPTION = description_body.find("div", class_="bbWrapper").get_text(strip=True)
+
+		# try:
+		# 	description_last_edited = description_body.find("dl", class_="message-lastEdit").get_text(strip=True)
+		# except:
+		# 	description_last_edited = None
 
 		THREADMARKS = BODY_CONTENT_BLOCK_TWO.find(
 			"span", {"data-xf-init": "threadmarks-toggle-storage"}).get_text(strip=True).split(" ")[1][1:]
@@ -79,9 +86,13 @@ class SpaceBattles:
 		WORDS = BODY_CONTENT_BLOCK_TWO.find(
 			"span", {"data-xf-init": "threadmarks-toggle-storage"}).get_text(strip=True).split("threadmarks, ")[-1][:-1]
 
-		LAST_UPDATED = BODY_CONTENT_BLOCK_TWO.find_all("div", class_="structItem--threadmark")[-1].contents[-2].get_text(strip=True)
+		LAST_UPDATED = BODY_CONTENT_BLOCK_TWO.find_all("div", class_="structItem--threadmark")[-1].contents[
+			-2].get_text(strip=True)
 
-		AUTHOR_AVATAR_LINK = BODY_CONTENT_BLOCK_THREE.find_all('article', class_='message')[0].find('div', class_='message-cell--user').find('img')['src']
+		AUTHOR_AVATAR_LINK = \
+			BODY_CONTENT_BLOCK_THREE.find_all('article', class_='message')[0].find('div',
+			                                                                       class_='message-cell--user').find(
+				'img')['src']
 		AUTHOR_AVATAR_LINK = f"https://forums.spacebattles.com{AUTHOR_AVATAR_LINK}"
 
 		IS_FETCHED = True

@@ -66,7 +66,7 @@ def SpaceBattlesEmbed(URL: str):
 
 		embed.add_field(name="Tags", value=TAGS, inline=False)
 
-		embed.set_footer(text=f"Info retrieved by Summarium on {now.strftime('%a %-d %b %Y at %X')}")
+		embed.set_footer(text=f"Info retrieved by Summarium on {now.strftime('%a %d %b %Y at %X')}")
 
 		return embed
 
