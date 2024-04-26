@@ -73,7 +73,14 @@ def ArchiveOfOurOwnEmbed(url: str):
 						url=url,
 						icon_url="https://archiveofourown.org/images/ao3_logos/logo_42.png"
 					)
-					embed.add_field(name="Authors", value=' • '.join(AO3Reply['AUTHOR_LIST']), inline=False)
+
+					AUTHORS_LIST_STRING = ' • '.join(AO3Reply['AUTHOR_LIST'])
+					if len(AUTHORS_LIST_STRING) > 1023:
+						NEW_AUTHORS_LIST = AUTHORS_LIST_STRING[:1020] + " ..."
+						INVISIBLE_AUTHORS = len(AUTHORS_LIST_STRING[1024:].split(' • '))
+						embed.add_field(name=f"Authors (with {INVISIBLE_AUTHORS} hidden)", value=NEW_AUTHORS_LIST, inline=False)
+					else:
+						embed.add_field(name="Authors", value=AUTHORS_LIST_STRING, inline=False)
 
 				AWBoolean = True if len(AO3Reply['ARCHIVE_WARNING_LIST']) == 3 else False
 				embed.add_field(name="Archive Warnings", value=ARCHIVE_WARNING, inline=AWBoolean)
@@ -98,7 +105,7 @@ def ArchiveOfOurOwnEmbed(url: str):
 					embed.add_field(name="Series", value=' • '.join(AO3Reply['SERIES']), inline=False)
 
 				embed.add_field(name="Stats", value=STATS, inline=False)
-				embed.set_footer(text=f"Info retrieved by Summarium on {now.strftime('%a %-d at %X')}")
+				embed.set_footer(text=f"Info retrieved by Summarium on {now.strftime('%a %d at %X')}")
 
 				return embed
 
@@ -146,19 +153,23 @@ def ArchiveOfOurOwnEmbed(url: str):
 				if AO3Reply['AUTHOR_IMAGE_LINK'].startswith('https://'):
 					embed.set_thumbnail(url=f"{AO3Reply['AUTHOR_IMAGE_LINK']}")
 			else:
-				if len(' • '.join(AO3Reply['AUTHOR_LIST'])) <= 1024:
-					AUTHORS = ' • '.join(AO3Reply['AUTHOR_LIST'])
+				AUTHORS_LIST_STRING = ' • '.join(AO3Reply['AUTHOR_LIST'])
+				if len(AUTHORS_LIST_STRING) < 1023:
+					embed.add_field(name="Authors", value=AUTHORS_LIST_STRING, inline=False)
 				else:
-					AUTHORS_ARR = f"{' • '.join(AO3Reply['AUTHOR_LIST'])[:1019]} ..."
-					AUTHORS_ARR_SPLIT = AUTHORS_ARR.split('•')
-					del AUTHORS_ARR_SPLIT[-1]
-					AUTHORS = f"{' • '.join(AUTHORS_ARR_SPLIT)} ..."
+					NEW_AUTHORS_LIST = AUTHORS_LIST_STRING[:1020] + " ..."
+					INVISIBLE_AUTHORS = len(AUTHORS_LIST_STRING[1024:].split(' • '))
+					embed.add_field(name=f"Authors (with {INVISIBLE_AUTHORS} hidden)", value=NEW_AUTHORS_LIST, inline=False)
+
+					# AUTHORS_ARR = f"{' • '.join(AO3Reply['AUTHOR_LIST'])[:1019]} ..."
+					# AUTHORS_ARR_SPLIT = AUTHORS_ARR.split('•')
+					# del AUTHORS_ARR_SPLIT[-1]
+					# AUTHORS = f"{' • '.join(AUTHORS_ARR_SPLIT)} ..."
 				embed.set_author(
 					name="Archive Of Our Own",
 					url=url,
 					icon_url="https://archiveofourown.org/images/ao3_logos/logo_42.png"
 				)
-				embed.add_field(name="Authors", value=AUTHORS, inline=False)
 
 			embed.add_field(name="Series Begun", value=f"{AO3Reply['SERIES_BEGUN']}", inline=True)
 			embed.add_field(name="Series Updated", value=f"{AO3Reply['SERIES_UPDATED']}", inline=True)
@@ -166,7 +177,7 @@ def ArchiveOfOurOwnEmbed(url: str):
 			embed.add_field(name="Notes", value=NOTES, inline=False)
 
 			if AO3Reply['WORKS'] != "N/A":
-				if len(" • ".join(AO3Reply['WORKS'])) <= 1024:
+				if len(" • ".join(AO3Reply['WORKS'])) < 1023:
 					WORKS = ' • '.join(AO3Reply['WORKS'])
 					embed.add_field(name="Works", value=WORKS, inline=False)
 				else:
@@ -181,7 +192,7 @@ def ArchiveOfOurOwnEmbed(url: str):
 
 			embed.add_field(name="Stats", value=AO3Reply['STATS'], inline=False)
 
-			embed.set_footer(text=f"Info retrieved by Summarium on {now.strftime('%a %-d at %X')}")
+			embed.set_footer(text=f"Info retrieved by Summarium on {now.strftime('%a %d at %X')}")
 
 			return embed
 
@@ -236,7 +247,7 @@ def ArchiveOfOurOwnEmbed(url: str):
 			if AO3Reply['CONTACT'] is not None:
 				embed.add_field(name="Contact", value=AO3Reply['CONTACT'], inline=True)
 
-			embed.set_footer(text=f"Info retrieved by Summarium on {now.strftime('%a %-d at %X')}")
+			embed.set_footer(text=f"Info retrieved by Summarium on {now.strftime('%a %d at %X')}")
 
 			return embed
 

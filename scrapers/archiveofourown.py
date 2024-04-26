@@ -73,7 +73,7 @@ class ArchiveOfOurOwn:
 				return {'TYPE': 'MYSTERY_WORK', 'EMBED_TITLE': 'Mystery Work', 'DESCRIPTION': FINAL_DESCRIPTION}
 			elif self.soup.title.getText(strip=True) == "New\n          Session\n        |\n        Archive of Our Own":
 				return {'TYPE': 'LOGIN_REQUIRED', 'EMBED_TITLE': 'Login Required',
-						'DESCRIPTION': 'You need to login to access this work'}
+				        'DESCRIPTION': 'This work needs you need to login'}
 			else:
 				# ===============TAGS
 				RATING = self.soup.find('dd', class_='rating tags').get_text(strip=True)
@@ -102,13 +102,14 @@ class ArchiveOfOurOwn:
 				# ===============PREFACE
 				TITLE = self.soup.find('h2', class_='title heading').get_text(strip=True)
 
+				summary_module_container = self.soup.find("div", class_="summary module")
 				try:
-					summaryVar = self.soup.find('blockquote', class_="userstuff")
+					summaryVar = summary_module_container.find('blockquote', class_="userstuff")
 					summaryVar = str(summaryVar).replace('<br/>', '\r\n')
 					summaryVar = str(summaryVar).replace('</p><p>', '</p><p>\r\n</p><p>')
 					SUMMARY = BeautifulSoup(summaryVar, 'lxml').get_text()
 				except:
-					SUMMARY = self.soup.find('blockquote', class_="userstuff").get_text(strip=True)
+					SUMMARY = summary_module_container.find('blockquote', class_="userstuff").get_text(strip=True)
 
 				# ===============ASSOCIATION
 				SERIES_LIST = []
@@ -156,8 +157,8 @@ class ArchiveOfOurOwn:
 				AUTHOR_SOUP = self.soup.find('h3', class_='byline heading')
 				if "<a href" in str(AUTHOR_SOUP):
 					AUTHOR_LIST = [f"[{i.get_text()}](https://archiveofourown.org{i['href']})" for i in
-								   AUTHOR_SOUP.contents
-								   if i not in ['\n', ', ']]
+					               AUTHOR_SOUP.contents
+					               if i not in ['\n', ', ']]
 
 					# AUTHOR & AUTHOR_LIST are only used when there's one author.
 					AUTHOR = AUTHOR_LIST[0][AUTHOR_LIST[0].index('[') + 1:AUTHOR_LIST[0].index(']')]
@@ -169,7 +170,7 @@ class ArchiveOfOurOwn:
 					AUTHOR_LIST = ["[Anonymous](https://archiveofourown.org/collections/anonymous/profile)"]
 
 				AUTHOR_IMAGE_SOUP = BeautifulSoup(self.scraper.get(AUTHOR_LINK).text, "lxml").find('div',
-																								   class_="primary header module")
+				                                                                                   class_="primary header module")
 				AUTHOR_IMAGE = AUTHOR_IMAGE_SOUP.find(class_="icon").img['src']
 				AUTHOR_IMAGE_LINK = AUTHOR_IMAGE if AUTHOR_IMAGE.startswith(
 					'https://') else f"https://archiveofourown.org{AUTHOR_IMAGE}"
@@ -212,7 +213,7 @@ class ArchiveOfOurOwn:
 			SERIES_TITLE = self.soup.find('h2', class_='heading').get_text(strip=True)
 
 			AUTHOR_LIST = [f"[{i.get_text()}](https://archiveofourown.org{i['href']})" for i in SERIES_DATA.dd if
-						   i not in ['\n', ', ']]
+			               i not in ['\n', ', ']]
 
 			# AUTHOR & AUTHOR_LINK are only used when there's one author.
 			AUTHOR = AUTHOR_LIST[0][AUTHOR_LIST[0].index('[') + 1:AUTHOR_LIST[0].index(']')]
@@ -266,6 +267,20 @@ class ArchiveOfOurOwn:
 			except:
 				WORKS = "N/A"
 
+			pprint.pprint({
+				'SERIES_TITLE': SERIES_TITLE,
+				'AUTHOR': AUTHOR,
+				'AUTHOR_LINK': AUTHOR_LINK,
+				'AUTHOR_LIST': AUTHOR_LIST,
+				'AUTHOR_IMAGE_LINK': AUTHOR_IMAGE_LINK,
+				'SERIES_BEGUN': SERIES_BEGUN,
+				'SERIES_UPDATED': SERIES_UPDATED,
+				'DESCRIPTION': DESCRIPTION,
+				'NOTES': NOTES,
+				'STATS': STATS,
+				'WORKS': WORKS
+			})
+
 			return {
 				'SERIES_TITLE': SERIES_TITLE,
 				'AUTHOR': AUTHOR,
@@ -312,7 +327,7 @@ class ArchiveOfOurOwn:
 
 			MAINTAINERS_LIST_HTML = [i for i in WRAPPER.find('ul', class_='mods commas') if i not in ['\n', ', ']]
 			MAINTAINERS_LIST = [f"[{i.get_text(strip=True)}](https://archiveofourown.org{i.a['href']})" for i in
-								MAINTAINERS_LIST_HTML]
+			                    MAINTAINERS_LIST_HTML]
 			# If there's only one author
 			AUTHOR = MAINTAINERS_LIST[0][MAINTAINERS_LIST[0].index('[') + 1:MAINTAINERS_LIST[0].index(']')]
 			AUTHOR_LINK = MAINTAINERS_LIST[0][MAINTAINERS_LIST[0].rindex('(') + 1:MAINTAINERS_LIST[0].rindex(')')]
