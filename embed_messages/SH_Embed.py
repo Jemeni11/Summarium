@@ -50,7 +50,7 @@ def ScribbleHubEmbed(URL: str):
 			if SHReply['RELATED_SERIES'] is not None:
 				embed.add_field(name="Related Series", value=SHReply['RELATED_SERIES'], inline=False)
 
-			embed.set_footer(text=f"Info retrieved by Summarium on {now.strftime('%a %-d at %X')}")
+			embed.set_footer(text=f"Info retrieved by Summarium on {now.strftime('%a %d at %X')}")
 
 			return embed
 
@@ -95,7 +95,7 @@ def ScribbleHubEmbed(URL: str):
 				""",
 				inline=False)
 
-			embed.set_footer(text=f"Info retrieved by Summarium on {now.strftime('%a %-d at %X')}")
+			embed.set_footer(text=f"Info retrieved by Summarium on {now.strftime('%a %d at %X')}")
 
 			return embed
 
