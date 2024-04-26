@@ -51,7 +51,7 @@ def FanFictionDotNetEmbed(URL: str):
 		embed.add_field(name="Stats", value=f"{FFReply['RATING']} • {FFReply['WORDS']} words • {chapterstring}\
 		 • {FFReply['LANGUAGE']}", inline=False)
 
-		embed.set_footer(text=f"Info retrieved by Summarium on {now.strftime('%a %-d at %X')}")
+		embed.set_footer(text=f"Info retrieved by Summarium on {now.strftime('%a %d at %X')}")
 
 		return file, embed
 

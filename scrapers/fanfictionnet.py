@@ -1,3 +1,5 @@
+import pprint
+
 import requests
 from bs4 import BeautifulSoup
 
@@ -14,7 +16,10 @@ def fanfictiondotnet(url: str):
 
 		# *********** PROFILE TOP ***********
 		FANDOM = None
-		COVER_IMAGE = None
+		try:
+			COVER_IMAGE = "https://www.fanfiction.net" + FICTION_DATA["rawExtendedMeta"]["cimage"]
+		except:
+			COVER_IMAGE = None
 
 		STORY_TITLE = FICTION_DATA['title']
 		AUTHOR = FICTION_DATA['author']
@@ -32,11 +37,37 @@ def fanfictiondotnet(url: str):
 		GENRE = None
 		CHARACTERS = None
 
+		pprint.pprint(STATS)
+
 		for i in STATS:
 			if i.startswith('Genre:'):
 				GENRE = i[7:].strip()
 			elif i.startswith('Characters:'):
 				CHARACTERS = i[12:].strip()
+
+		try:
+			REVIEWS = FICTION_DATA["rawExtendedMeta"]["reviews"]
+		except:
+			REVIEWS = None
+
+		pprint.pprint({
+			'FANDOM': FANDOM,
+			'COVER_IMAGE': COVER_IMAGE,
+			'STORY_TITLE': STORY_TITLE,
+			'AUTHOR': AUTHOR,
+			'AUTHOR_LINK': AUTHOR_LINK,
+			'SYNOPSIS': SYNOPSIS,
+			'RATING': RATING,
+			'LANGUAGE': LANGUAGE,
+			'GENRE': GENRE,
+			'CHARACTERS': CHARACTERS,
+			'CHAPTERS': CHAPTERS,
+			'WORDS': WORDS,
+			'STATUS': STATUS,
+			'UPDATED': UPDATED,
+			'PUBLISHED': PUBLISHED,
+			'REVIEWS': REVIEWS
+		})
 
 		return {
 			'FANDOM': FANDOM,
@@ -53,7 +84,8 @@ def fanfictiondotnet(url: str):
 			'WORDS': WORDS,
 			'STATUS': STATUS,
 			'UPDATED': UPDATED,
-			'PUBLISHED': PUBLISHED
+			'PUBLISHED': PUBLISHED,
+			'REVIEWS': REVIEWS
 		}
 
 	except Exception as err:
