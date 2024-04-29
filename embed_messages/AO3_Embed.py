@@ -1,19 +1,19 @@
-import re
 from discord import Embed
 from scrapers.archiveofourown import ArchiveOfOurOwn
 from utils import (
     validate_url,
     handle_error,
-    trim_text,
+    pattern_matcher,
     process_list,
-    delete_first_and_last_from_list,
+    create_footer,
 )
-from dateutil import tz
-from datetime import datetime
 
-now = datetime.now(tz=tz.tzlocal())
+# from dateutil import tz
+# from datetime import datetime
+# now = datetime.now(tz=tz.tzlocal())
 
-def main(url: str):
+
+def ao3_main(url: str):
     try:
         url_patterns = [
             r"^https://archiveofourown\.org/works/\d+",
@@ -23,340 +23,220 @@ def main(url: str):
         ]
         if validate_url(url, url_patterns):
             data = process_data(url)
-            return data
+            return archive_of_our_own_embed(data, url)
         else:
             return handle_error(url, "Unable to get ArchiveOfOurOwn data")
     except Exception as e:
         return handle_error(url, f"Development Error: {e}")
 
 
-def process_data(url: str):
+def process_data(url: str) -> dict:
     ao3_instance = ArchiveOfOurOwn(url)
-    if re.search(
-        r"^https://archiveofourown\.org/works/\d+", url, re.IGNORECASE
-    ) or re.search(
-        r"^https://archiveofourown\.org/collections/\w+/\bworks\b/\d+",
-        url,
-        re.IGNORECASE,
+    if pattern_matcher(
+        r"^https://archiveofourown\.org/works/\d+", url
+    ) or pattern_matcher(
+        r"^https://archiveofourown\.org/collections/\w+/\bworks\b/\d+", url
     ):
-        return ao3_instance.A03Story()
-    elif re.search(r"^https://archiveofourown\.org/series/\d+", url, re.IGNORECASE):
-        return ao3_instance.A03Series()
-    elif re.search(
-        r"^https://archiveofourown\.org/collections/\w+", url, re.IGNORECASE
-    ):
-        return ao3_instance.AO3Collection()
+        return ao3_instance.ao3_story()
+    elif pattern_matcher(r"^https://archiveofourown\.org/series/\d+", url):
+        return ao3_instance.ao3_series()
+    elif pattern_matcher(r"^https://archiveofourown\.org/collections/\w+", url):
+        return ao3_instance.ao3_collection()
     else:
         raise ValueError("Unsupported URL")
 
 
-def ArchiveOfOurOwnEmbed(url: str):
-    AO3instance = ArchiveOfOurOwn(url)
-    try:
-        if re.search(
-            r"^https://archiveofourown\.org/works/\d+", url, re.IGNORECASE
-        ) or re.search(
-            r"^https://archiveofourown\.org/collections/\w+/\bworks\b/\d+",
-            url,
-            re.IGNORECASE,
-        ):
-            AO3Reply = AO3instance.A03Story()
+def archive_of_our_own_embed(data: dict, url: str):
+    # fields	    Up to 25 field objects
+    # field.name	256 characters
+    # field.value	1024 characters
+    # footer.text	2048 characters
+    # author.name	256 characters
 
-            if AO3Reply["TYPE"] == "STORY" and isinstance(AO3Reply, dict):
-                # Dealing with limits
-                AUTHOR_NAME = trim_text(AO3Reply["AUTHOR"], 256)
-                ARCHIVE_WARNING = trim_text(AO3Reply["ARCHIVE_WARNING"])
-                FANDOM = trim_text(AO3Reply["FANDOM"])
-                RELATIONSHIPS = process_list(
-                    delete_first_and_last_from_list(AO3Reply["RELATIONSHIPS"])
-                )
-                CHARACTERS = process_list(
-                    delete_first_and_last_from_list(AO3Reply["CHARACTERS"])
-                )
-                STATS = trim_text(AO3Reply["STATS"])
+    if data["TYPE"] == "STORY":
+        # Dealing with limits
+        author_name = data["AUTHOR"]
+        archive_warning = data["ARCHIVE_WARNING"]
+        fandom = data["FANDOM"]
+        relationships: str | None = data["RELATIONSHIPS"]
+        characters: str | None = data["CHARACTERS"]
+        stats = data["STATS"]
+        summary = data["SUMMARY"]
+        rating = data["RATING"]
+        title = data["TITLE"]
 
-                DESCRIPTION = trim_text(AO3Reply["SUMMARY"], 375)
+        ao3_embed = Embed(title=title, url=url, description=summary, color=0xFF0000)
 
-                # fields	Up to 25 field objects
-                # field.name	256 characters
-                # field.value	1024 characters
-                # footer.text	2048 characters
-                # author.name	256 characters
-
-                # Create the initial embed object #
-                embed = Embed(
-                    title=AO3Reply["TITLE"],
-                    url=url,
-                    description=DESCRIPTION,
-                    color=0xFF0000,
-                )
-
-                # Add author, thumbnail, fields, and footer to the embed
-                if len(AO3Reply["AUTHOR_LIST"]) == 1:
-                    embed.set_author(
-                        name=AUTHOR_NAME,
-                        url=AO3Reply["AUTHOR_LINK"],
-                        icon_url="https://archiveofourown.org/images/ao3_logos/logo_42.png",
-                    )
-                    if AO3Reply["AUTHOR_IMAGE_LINK"].startswith("https://"):
-                        embed.set_thumbnail(url=AO3Reply["AUTHOR_IMAGE_LINK"])
-                else:
-                    embed.set_author(
-                        name="Archive Of Our Own",
-                        url=url,
-                        icon_url="https://archiveofourown.org/images/ao3_logos/logo_42.png",
-                    )
-
-                    AUTHORS_LIST_STRING = " • ".join(AO3Reply["AUTHOR_LIST"])
-                    if len(AUTHORS_LIST_STRING) > 1023:
-                        NEW_AUTHORS_LIST = AUTHORS_LIST_STRING[:1020] + " ..."
-                        INVISIBLE_AUTHORS = len(AUTHORS_LIST_STRING[1024:].split(" • "))
-                        embed.add_field(
-                            name=f"Authors (with {INVISIBLE_AUTHORS} hidden)",
-                            value=NEW_AUTHORS_LIST,
-                            inline=False,
-                        )
-                    else:
-                        embed.add_field(
-                            name="Authors", value=AUTHORS_LIST_STRING, inline=False
-                        )
-
-                AWBoolean = (
-                    True if len(AO3Reply["ARCHIVE_WARNING_LIST"]) == 3 else False
-                )
-                embed.add_field(
-                    name="Archive Warnings", value=ARCHIVE_WARNING, inline=AWBoolean
-                )
-
-                embed.add_field(name="Rating", value=AO3Reply["RATING"], inline=True)
-                embed.add_field(
-                    name="Language", value=AO3Reply["LANGUAGE"], inline=True
-                )
-
-                embed.add_field(name="Fandom", value=FANDOM, inline=False)
-
-                embed.add_field(
-                    name="Characters",
-                    value=(
-                        CHARACTERS
-                        if AO3Reply["CHARACTERS"] != "N/A"
-                        else "No Characters"
-                    ),
-                    inline=False,
-                )
-                embed.add_field(
-                    name="Relationships",
-                    value=(
-                        RELATIONSHIPS
-                        if AO3Reply["RELATIONSHIPS"] != "N/A"
-                        else "No Relationships"
-                    ),
-                    inline=False,
-                )
-
-                if len(AO3Reply["SERIES"]):
-                    embed.add_field(
-                        name="Series",
-                        value=" • ".join(AO3Reply["SERIES"]),
-                        inline=False,
-                    )
-
-                embed.add_field(name="Stats", value=STATS, inline=False)
-                embed.set_footer(
-                    text=f"Info retrieved by Summarium on {now.strftime('%a %d at %X')}"
-                )
-
-                return embed
-
-            elif (
-                AO3Reply["TYPE"] in ["LOGIN_REQUIRED", "MYSTERY_WORK"]
-            ) and isinstance(AO3Reply, dict):
-                embed = Embed(
-                    title=AO3Reply["EMBED_TITLE"],
-                    url=str(url),
-                    description=AO3Reply["DESCRIPTION"],
-                    color=0xFF0000,
-                )
-                return embed
-
-        elif re.search(r"^https://archiveofourown\.org/series/\d+", url, re.IGNORECASE):
-            AO3Reply = AO3instance.A03Series()
-            # Dealing with limits
-            # Series Title* [240 characters left]
-            # Description: [1250 characters left]
-            # Notes: [5000 characters left]
-            AUTHOR_NAME = (
-                f"{AO3Reply['AUTHOR']}"
-                if len(AO3Reply["AUTHOR"]) <= 256
-                else f"{AO3Reply['AUTHOR'][:251]} ..."
+        # Add author
+        if len(data["AUTHOR_LIST"]) == 1:
+            ao3_embed.set_author(
+                name=author_name,
+                url=data["AUTHOR_LINK"],
+                icon_url="https://archiveofourown.org/images/ao3_logos/logo_42.png",
             )
-            if AO3Reply["DESCRIPTION"] is not None:
-                DESCRIPTION = (
-                    f"{AO3Reply['DESCRIPTION']}"
-                    if len(AO3Reply["DESCRIPTION"]) <= 300
-                    else f"{AO3Reply['DESCRIPTION'][:295]} ..."
-                )
-            else:
-                DESCRIPTION = "No description available"
-            if AO3Reply["NOTES"] is not None:
-                NOTES = (
-                    f"{AO3Reply['NOTES']}"
-                    if len(AO3Reply["NOTES"]) <= 300
-                    else f"{AO3Reply['NOTES'][:295]} ..."
-                )
-            else:
-                NOTES = "No Notes available"
-
-            # Create the initial embed object #
-            embed = Embed(
-                title=AO3Reply["SERIES_TITLE"],
+            if data["AUTHOR_IMAGE_LINK"].startswith("https://"):
+                ao3_embed.set_thumbnail(url=data["AUTHOR_IMAGE_LINK"])
+        else:
+            ao3_embed.set_author(
+                name="Archive Of Our Own",
                 url=url,
-                description=DESCRIPTION,
-                color=0xFF0000,
+                icon_url="https://archiveofourown.org/images/ao3_logos/logo_42.png",
             )
 
-            # Add author, thumbnail, fields, and footer to the embed
-            if len(AO3Reply["AUTHOR_LIST"]) == 1:
-                embed.set_author(
-                    name=AUTHOR_NAME,
-                    url=AO3Reply["AUTHOR_LINK"],
-                    icon_url="https://archiveofourown.org/images/ao3_logos/logo_42.png",
-                )
-                if AO3Reply["AUTHOR_IMAGE_LINK"].startswith("https://"):
-                    embed.set_thumbnail(url=f"{AO3Reply['AUTHOR_IMAGE_LINK']}")
-            else:
-                AUTHORS_LIST_STRING = " • ".join(AO3Reply["AUTHOR_LIST"])
-                if len(AUTHORS_LIST_STRING) < 1023:
-                    embed.add_field(
-                        name="Authors", value=AUTHORS_LIST_STRING, inline=False
-                    )
-                else:
-                    NEW_AUTHORS_LIST = AUTHORS_LIST_STRING[:1020] + " ..."
-                    INVISIBLE_AUTHORS = len(AUTHORS_LIST_STRING[1024:].split(" • "))
-                    embed.add_field(
-                        name=f"Authors (with {INVISIBLE_AUTHORS} hidden)",
-                        value=NEW_AUTHORS_LIST,
-                        inline=False,
-                    )
-
-                    # AUTHORS_ARR = f"{' • '.join(AO3Reply['AUTHOR_LIST'])[:1019]} ..."
-                    # AUTHORS_ARR_SPLIT = AUTHORS_ARR.split('•')
-                    # del AUTHORS_ARR_SPLIT[-1]
-                    # AUTHORS = f"{' • '.join(AUTHORS_ARR_SPLIT)} ..."
-                embed.set_author(
-                    name="Archive Of Our Own",
-                    url=url,
-                    icon_url="https://archiveofourown.org/images/ao3_logos/logo_42.png",
-                )
-
-            embed.add_field(
-                name="Series Begun", value=f"{AO3Reply['SERIES_BEGUN']}", inline=True
-            )
-            embed.add_field(
-                name="Series Updated",
-                value=f"{AO3Reply['SERIES_UPDATED']}",
-                inline=True,
+            authors_list_string_ = process_list(data["AUTHOR_LIST"])
+            ao3_embed.add_field(
+                name="Authors", value=authors_list_string_, inline=False
             )
 
-            embed.add_field(name="Notes", value=NOTES, inline=False)
+        aw_boolean = True if len(data["ARCHIVE_WARNING_LIST"]) == 3 else False
+        ao3_embed.add_field(
+            name="Archive Warnings", value=archive_warning, inline=aw_boolean
+        )
+        ao3_embed.add_field(name="Rating", value=rating, inline=True)
+        ao3_embed.add_field(name="Language", value=data["LANGUAGE"], inline=True)
+        ao3_embed.add_field(name="Fandom", value=fandom, inline=False)
 
-            if AO3Reply["WORKS"] != "N/A":
-                if len(" • ".join(AO3Reply["WORKS"])) < 1023:
-                    WORKS = " • ".join(AO3Reply["WORKS"])
-                    embed.add_field(name="Works", value=WORKS, inline=False)
-                else:
-                    WORKS_ARR = f"{' • '.join(AO3Reply['WORKS'])[:1015]} ..."
-                    if WORKS_ARR[1014] != ")":
-                        WORKS_ARR_SPLIT = WORKS_ARR.split(" • ")
-                        del WORKS_ARR_SPLIT[-1]
-                        WORKS = f"{' • '.join(WORKS_ARR_SPLIT)} ..."
-                        embed.add_field(name="Works", value=WORKS, inline=False)
-                    else:
-                        embed.add_field(name="Works", value=WORKS_ARR, inline=False)
-
-            embed.add_field(name="Stats", value=AO3Reply["STATS"], inline=False)
-
-            embed.set_footer(
-                text=f"Info retrieved by Summarium on {now.strftime('%a %d at %X')}"
-            )
-
-            return embed
-
-        elif re.search(
-            r"^https://archiveofourown\.org/collections/\w+", url, re.IGNORECASE
-        ):
-            AO3Reply = AO3instance.AO3Collection()
-            MAIN_LT = AO3Reply["MAINTAINERS_LIST"]
-
-            # Create the initial embed object #
-            embed = Embed(
-                title=f"{AO3Reply['STORY_TITLE_TEXT']}",
-                url=str(url),
-                description=AO3Reply["SUMMARY"],
-                color=0xFF0000,
-            )
-
-            # Add author, thumbnail, fields, and footer to the embed
-            if AO3Reply["IMAGE"].startswith("https://"):
-                embed.set_thumbnail(url=AO3Reply["IMAGE"])
-            if len(MAIN_LT) == 1:
-                embed.set_author(
-                    name=AO3Reply["AUTHOR"],
-                    url=f"{AO3Reply['AUTHOR_LINK']}",
-                    icon_url="https://archiveofourown.org/images/ao3_logos/logo_42.png",
-                )
-            else:
-                if len(" • ".join(MAIN_LT)) > 1024:
-                    AUTHORS_ARR = f"{' • '.join(MAIN_LT)[:1019]} ..."
-                    AUTHORS_ARR_SPLIT = AUTHORS_ARR.split("•")
-                    del AUTHORS_ARR_SPLIT[-1]
-                    AUTHORS = f"{' • '.join(AUTHORS_ARR_SPLIT)} ..."
-                else:
-                    AUTHORS = " • ".join(MAIN_LT)
-                embed.set_author(
-                    name="Archive Of Our Own",
-                    url=url,
-                    icon_url="https://archiveofourown.org/images/ao3_logos/logo_42.png",
-                )
-                embed.add_field(name="Maintainers", value=AUTHORS, inline=False)
-
-            if AO3Reply["INTRO"] is not None:
-                INTRO = (
-                    f"{AO3Reply['INTRO']}"
-                    if len(AO3Reply["INTRO"]) <= 300
-                    else f"{AO3Reply['INTRO'][:295]} ..."
-                )
-                embed.add_field(name="Intro", value=INTRO, inline=False)
-
-            if AO3Reply["RULES"] is not None:
-                RULES = (
-                    f"{AO3Reply['RULES']}"
-                    if len(AO3Reply["RULES"]) <= 300
-                    else f"{AO3Reply['RULES'][:295]} ..."
-                )
-                embed.add_field(name="Rules", value=RULES, inline=False)
-
-            embed.add_field(name="Status", value=f"{AO3Reply['STATUS']}", inline=True)
-
-            embed.add_field(
-                name="Active Since", value=f"{AO3Reply['ACTIVE_SINCE']}", inline=True
-            )
-
-            if AO3Reply["CONTACT"] is not None:
-                embed.add_field(name="Contact", value=AO3Reply["CONTACT"], inline=True)
-
-            embed.set_footer(
-                text=f"Info retrieved by Summarium on {now.strftime('%a %d at %X')}"
-            )
-
-            return embed
-
-    except:
-        embed = Embed(
-            title="Summarium Error",
-            url=str(url),
-            description=f"Can not get {url}",
-            color=0x0000FF,
+        ao3_embed.add_field(
+            name="Characters",
+            value=(characters if characters is not None else "No Characters"),
+            inline=False,
         )
 
-        return embed
+        ao3_embed.add_field(
+            name="Relationships",
+            value=(relationships if relationships is not None else "No Relationships"),
+            inline=False,
+        )
+
+        if len(data["SERIES"]) > 0:
+            ao3_embed.add_field(
+                name="Series",
+                value=process_list(data["SERIES"], " • "),
+                inline=False,
+            )
+
+        ao3_embed.add_field(name="Stats", value=stats, inline=False)
+        create_footer(ao3_embed)
+
+        return ao3_embed
+
+    elif data["TYPE"] in ["LOGIN_REQUIRED", "MYSTERY_WORK"]:
+        return Embed(
+            title=data["EMBED_TITLE"],
+            url=url,
+            description=data["DESCRIPTION"],
+            color=0xFF0000,
+        )
+
+    elif data["TYPE"] == "SERIES":
+        # Dealing with limits
+        # Series Title* [240 characters left]
+        # Description: [1250 characters left]
+        # Notes: [5000 characters left]
+        author_name = data["AUTHOR"]
+        description = (
+            data["DESCRIPTION"]
+            if data["DESCRIPTION"] is not None
+            else "No description available"
+        )
+        notes = data["NOTES"] if data["NOTES"] is not None else "No notes available"
+        series_title = data["SERIES_TITLE"]
+
+        ao3_series_embed = Embed(
+            title=series_title, url=url, description=description, color=0xFF0000
+        )
+
+        # Add author, thumbnail, fields, and footer to the embed
+        if len(data["AUTHOR_LIST"]) == 1:
+            ao3_series_embed.set_author(
+                name=author_name,
+                url=data["AUTHOR_LINK"],
+                icon_url="https://archiveofourown.org/images/ao3_logos/logo_42.png",
+            )
+            if data["AUTHOR_IMAGE_LINK"].startswith("https://"):
+                ao3_series_embed.set_thumbnail(url=f"{data['AUTHOR_IMAGE_LINK']}")
+        else:
+            ao3_series_embed.set_author(
+                name="Archive Of Our Own",
+                url=url,
+                icon_url="https://archiveofourown.org/images/ao3_logos/logo_42.png",
+            )
+            authors_list_string = process_list(data["AUTHOR_LIST"])
+            ao3_series_embed.add_field(
+                name="Authors", value=authors_list_string, inline=False
+            )
+
+        ao3_series_embed.add_field(
+            name="Series Begun", value=f"{data['SERIES_BEGUN']}", inline=True
+        )
+        ao3_series_embed.add_field(
+            name="Series Updated",
+            value=f"{data['SERIES_UPDATED']}",
+            inline=True,
+        )
+        ao3_series_embed.add_field(name="Notes", value=notes, inline=False)
+        if data["WORKS"] is not None:
+            works = process_list(data["WORKS"], " • ")
+            ao3_series_embed.add_field(name="Works", value=works, inline=False)
+        ao3_series_embed.add_field(name="Stats", value=data["STATS"], inline=False)
+
+        create_footer(ao3_series_embed)
+
+        return ao3_series_embed
+
+    elif data["TYPE"] == "COLLECTION":
+        main_lt: list[str] = data["MAINTAINERS_LIST"]
+
+        story_title = data["STORY_TITLE_TEXT"]
+        ao3_collection_embed = Embed(
+            title=story_title, url=url, description=data["SUMMARY"], color=0xFF0000
+        )
+
+        # Add author, thumbnail, fields, and footer to the embed
+        if data["IMAGE"].startswith("https://"):
+            ao3_collection_embed.set_thumbnail(url=data["IMAGE"])
+
+        if len(main_lt) == 1:
+            ao3_collection_embed.set_author(
+                name=data["AUTHOR"],
+                url=f"{data['AUTHOR_LINK']}",
+                icon_url="https://archiveofourown.org/images/ao3_logos/logo_42.png",
+            )
+        else:
+            ao3_collection_embed.set_author(
+                name="Archive Of Our Own",
+                url=url,
+                icon_url="https://archiveofourown.org/images/ao3_logos/logo_42.png",
+            )
+            authors = process_list(main_lt, " • ")
+            ao3_collection_embed.add_field(
+                name="Maintainers", value=authors, inline=False
+            )
+
+        if data["INTRO"] is not None:
+            intro = data["INTRO"]
+            ao3_collection_embed.add_field(name="Intro", value=intro, inline=False)
+
+        if data["RULES"] is not None:
+            rules = data["RULES"]
+            ao3_collection_embed.add_field(name="Rules", value=rules, inline=False)
+
+        ao3_collection_embed.add_field(
+            name="Status", value=f"{data['STATUS']}", inline=True
+        )
+
+        ao3_collection_embed.add_field(
+            name="Active Since", value=f"{data['ACTIVE_SINCE']}", inline=True
+        )
+
+        if data["CONTACT"] is not None:
+            ao3_collection_embed.add_field(
+                name="Contact", value=data["CONTACT"], inline=True
+            )
+
+        create_footer(ao3_collection_embed)
+
+        return ao3_collection_embed
+
+    else:
+        return handle_error(url, f"Can not get {url}")
