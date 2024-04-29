@@ -3,7 +3,7 @@ import os
 
 import discord
 from utils import pattern_matcher, regex_strings
-from constants import Site
+from constants import Site, url_regex
 
 from embed_messages.SH_Embed import ScribbleHubEmbed
 from embed_messages.AO3_Embed import ao3_main
@@ -48,30 +48,13 @@ async def on_message(message):
         return  # Do not reply to other bots
 
     # Pulling out all URLs
-    URLs = re.findall(
-        r"""
-		\b((?:https?://)?(?:(?:www\.)?(?:[\da-z\.-]+)\.(?:[a-z]{2,6})
-		|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]
-		|2[0-4][0-9]|[01]?[0-9][0-9]?)|(?:(?:[0-9a-fA-F]{1,4}:){7}
-		[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]
-		{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::
-		[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]
-		{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}
-		|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]
-		{1,4}:(?:(?::[0-9a-fA-F]{1,4}){1,6})|:(?:(?::[0-9a-fA-F]{1,4}){1,7}|:)
-		|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]+|::(?:ffff(?::0{1,4})
-		?:)?(?:(?:25[0-5]|(?:2[0-4]|1?[0-9])?[0-9])\.){3}
-		(?:25[0-5]|(?:2[0-4]|1?}[0-9])?[0-9])|(?:[0-9a-fA-F]{1,4}:)
-		{1,4}:(?:(?:25[0-5]|(?:2[0-4]|1?[0-9])?[0-9])\.){3}(?:25
-		[0-5]|(?:2[0-4]|1?[0-9])?[0-9])))(?::[0-9]{1,4}|[1-5][0-9]
-		{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])?
-		(?:/[\w\.-]*)*/?)\b
-		""",
+    urls = re.findall(
+        url_regex,
         message.content,
         re.VERBOSE,
     )
 
-    for i in URLs:
+    for i in urls:
         if pattern_matcher(regex_strings(Site.ScribbleHub), i):
             await message.reply(embed=ScribbleHubEmbed(i))
         elif pattern_matcher(regex_strings(Site.ArchiveOfOurOwn), i):
@@ -91,18 +74,18 @@ async def on_message(message):
 # Slash Commands
 # ScribbleHub
 @bot.command(
-    name="scribblehub", description="Gets ScribbleHub Stories or Profiles metadata"
+    name="scribble_hub", description="Gets ScribbleHub Stories or Profiles metadata"
 )
-async def scribblehub(
+async def scribble_hub(
     ctx,
-    scribblehub_url: discord.Option(
+    sh_url: discord.Option(
         input_type=str,
-        description="The ScribbleHub Stories" "/Profiles URL",
+        description="The ScribbleHub Stories/Profiles URL",
         required=True,
     ),
 ):
     await ctx.defer()
-    await ctx.respond(embed=ScribbleHubEmbed(scribblehub_url))
+    await ctx.respond(embed=ScribbleHubEmbed(sh_url))
 
 
 # ArchiveOfOurOwn
@@ -123,8 +106,8 @@ async def archive_of_our_own(
 
 
 # FanFiction.net
-@bot.command(name="fanfictiondotnet", description="Gets FanFiction.Net story metadata")
-async def fanfictiondotnet(
+@bot.command(name="fanfiction_dotnet", description="Gets FanFiction.Net story metadata")
+async def fanfiction_dotnet(
     ctx,
     ff_url: discord.Option(
         input_type=str, description="The FanFiction.Net story URL", required=True
@@ -137,8 +120,8 @@ async def fanfictiondotnet(
 
 
 # Fiction.live
-@bot.command(name="fictiondotlive", description="Gets Fiction.Live story metadata")
-async def fictiondotlive(
+@bot.command(name="fiction_dot_live", description="Gets Fiction.Live story metadata")
+async def fiction_dot_live(
     ctx,
     fl_url: discord.Option(
         input_type=str, description="The Fiction.Live story URL", required=True
@@ -161,8 +144,8 @@ async def webnovel(
 
 
 # SpaceBattles
-@bot.command(name="spacebattles", description="Gets SpaceBattles story metadata")
-async def spacebattles(
+@bot.command(name="space_battles", description="Gets SpaceBattles story metadata")
+async def space_battles(
     ctx,
     sb_url: discord.Option(
         input_type=str, description="The SpaceBattles story URL", required=True
