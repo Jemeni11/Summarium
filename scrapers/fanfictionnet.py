@@ -15,9 +15,11 @@ def fanfictiondotnet(url: str):
             f"https://fichub.net/api/v0/epub", headers=headers, params=payload
         )
         FICTION_DATA = response.json()["meta"]
+        pprint.pprint(response.json())
+        print(FICTION_DATA)
 
         # *********** PROFILE TOP ***********
-        FANDOM = None
+        FANDOM = FICTION_DATA["rawExtendedMeta"]["raw_fandom"]
         try:
             COVER_IMAGE = (
                 "https://www.fanfiction.net" + FICTION_DATA["rawExtendedMeta"]["cimage"]
@@ -43,8 +45,6 @@ def fanfictiondotnet(url: str):
         GENRE = None
         CHARACTERS = None
 
-        pprint.pprint(STATS)
-
         for i in STATS:
             if i.startswith("Genre:"):
                 GENRE = i[7:].strip()
@@ -55,27 +55,6 @@ def fanfictiondotnet(url: str):
             REVIEWS = FICTION_DATA["rawExtendedMeta"]["reviews"]
         except:
             REVIEWS = None
-
-        pprint.pprint(
-            {
-                "FANDOM": FANDOM,
-                "COVER_IMAGE": COVER_IMAGE,
-                "STORY_TITLE": STORY_TITLE,
-                "AUTHOR": AUTHOR,
-                "AUTHOR_LINK": AUTHOR_LINK,
-                "SYNOPSIS": SYNOPSIS,
-                "RATING": RATING,
-                "LANGUAGE": LANGUAGE,
-                "GENRE": GENRE,
-                "CHARACTERS": CHARACTERS,
-                "CHAPTERS": CHAPTERS,
-                "WORDS": WORDS,
-                "STATUS": STATUS,
-                "UPDATED": UPDATED,
-                "PUBLISHED": PUBLISHED,
-                "REVIEWS": REVIEWS,
-            }
-        )
 
         return {
             "FANDOM": FANDOM,
