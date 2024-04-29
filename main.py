@@ -1,14 +1,12 @@
-# This example requires the 'members' and 'message_content' privileged intents
-
 import re
 import os
 
 import discord
-from discord import Embed
-from discord.ext import commands
+from utils import pattern_matcher, regex_strings
+from constants import Site
 
 from embed_messages.SH_Embed import ScribbleHubEmbed
-from embed_messages.AO3_Embed import ArchiveOfOurOwnEmbed
+from embed_messages.AO3_Embed import ao3_main
 from embed_messages.FF_Embed import FanFictionDotNetEmbed
 from embed_messages.FL_Embed import FictionDotLiveEmbed
 from embed_messages.WN_Embed import WebNovelEmbed
@@ -74,39 +72,19 @@ async def on_message(message):
     )
 
     for i in URLs:
-        if re.search(
-            r"(^https://www\.scribblehub\.com/(series|read|profile))/\d+",
-            i,
-            re.IGNORECASE,
-        ):
+        if pattern_matcher(regex_strings(Site.ScribbleHub), i):
             await message.reply(embed=ScribbleHubEmbed(i))
-        elif re.search(
-            r"^https://archiveofourown\.org/(\bseries\b|\bworks\b|\bcollections\b)/",
-            i,
-            re.IGNORECASE,
-        ):
-            await message.reply(embed=ArchiveOfOurOwnEmbed(i))
-        elif re.search(
-            r"^https://(www|m)\.(\bfanfiction\b\.\bnet\b)/s/\d+/\d+/\w*",
-            i,
-            re.IGNORECASE,
-        ):
+        elif pattern_matcher(regex_strings(Site.ArchiveOfOurOwn), i):
+            await message.reply(embed=ao3_main(i))
+        elif pattern_matcher(regex_strings(Site.FanFictionDotNet), i):
             await message.reply(
                 file=FanFictionDotNetEmbed(i)[0], embed=FanFictionDotNetEmbed(i)[1]
             )
-        elif re.search(
-            r"^https?://fiction\.live/(?:stories|Sci-fi)/([^\/]+|)/([0-9a-zA-Z\-]+)/?.*",
-            i,
-            re.IGNORECASE,
-        ):
+        elif pattern_matcher(regex_strings(Site.FictionLive), i):
             await message.reply(embed=FictionDotLiveEmbed(i))
-        elif re.search(r"(www|m)\.webnovel\.com/book/", i, re.IGNORECASE):
+        elif pattern_matcher(regex_strings(Site.WebNovel), i):
             await message.reply(embed=WebNovelEmbed(i))
-        elif re.search(
-            r"^https?://forums?\.spacebattles\.com/threads/(([a-zA-Z%0-9]+-*)+\.[0-9]+)/?",
-            i,
-            re.IGNORECASE,
-        ):
+        elif pattern_matcher(regex_strings(Site.SpaceBattles), i):
             await message.reply(embed=SpaceBattlesEmbed(i))
 
 
@@ -141,7 +119,7 @@ async def archive_of_our_own(
     ),
 ):
     await ctx.defer()
-    await ctx.respond(embed=ArchiveOfOurOwnEmbed(ao3_url))
+    await ctx.respond(embed=ao3_main(ao3_url))
 
 
 # FanFiction.net
